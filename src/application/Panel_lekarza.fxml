@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Panel_lekarzaController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Panel_lekarzaController">
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -68,14 +68,15 @@
                             <TableColumn fx:id="p_nazwisko" prefWidth="101.60000610351562" text="Nazwisko" />
                               <TableColumn fx:id="p_wiek" prefWidth="52.800048828125" text="Wiek" />
                               <TableColumn fx:id="p_ulica" prefWidth="86.39996337890625" text="Ulica" />
-                              <TableColumn fx:id="p_nr_d" prefWidth="111.20004272460938" text="Numer domu" />
-                              <TableColumn fx:id="p_nr_m" prefWidth="143.20001220703125" text="Numer mieszkania" />
-                              <TableColumn fx:id="p_miejscowosc" prefWidth="119.99993896484375" text="Miejscowość" />
+                              <TableColumn fx:id="p_nr_d" prefWidth="84.0" text="Numer domu" />
+                              <TableColumn fx:id="p_nr_m" prefWidth="113.0" text="Numer mieszkania" />
+                              <TableColumn fx:id="p_miejscowosc" prefWidth="179.0" text="Miejscowość" />
+                              <TableColumn fx:id="p_kod_pocztowy" prefWidth="88.0" text="Kod pocztowy" />
                           </columns>
                            <contextMenu>
                               <ContextMenu fx:id="c_menu" onShown="#test">
                                 <items>
-                                    <MenuItem mnemonicParsing="false" onAction="#p_szczegoly" text="Szczegóły..." />
+ 
                                 </items>
                               </ContextMenu>
                            </contextMenu>
@@ -84,23 +85,20 @@
                   </AnchorPane>
             </content>
           </Tab>
-            <Tab text="Wizyty">
+            <Tab text="Twoje wizyty">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <TableView fx:id="wizyty" layoutX="250.0" layoutY="101.0" prefHeight="601.6" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <columns>
-                              <TableColumn fx:id="w_id" prefWidth="44.000001549720764" text="Id" />
-                            <TableColumn fx:id="w_pesel" prefWidth="152.0000228881836" text="Pesel" />
-                            <TableColumn fx:id="w_id_p" prefWidth="120.79998779296875" text="Id lekarza" />
-                              <TableColumn fx:id="w_data" minWidth="0.0" prefWidth="279.2000427246094" text="Data" />
-                              <TableColumn fx:id="w_opis" minWidth="0.0" prefWidth="300.800048828125" text="Opis" />
-                              <TableColumn fx:id="w_id1" prefWidth="120.79998779296875" text="Id lekarza" />
+                              <TableColumn fx:id="w_id" prefWidth="44.000001549720764" text="ID" />
+                            <TableColumn fx:id="w_pesel" prefWidth="216.0" text="Pacjent" />
+                              <TableColumn fx:id="w_data" minWidth="0.0" prefWidth="275.0" text="Data" />
+                              <TableColumn fx:id="w_opis" minWidth="0.0" prefWidth="360.0" text="Opis" />
                           </columns>
                            <contextMenu>
                               <ContextMenu fx:id="c_menu1" onShown="#test">
                                  <items>
-                                    <MenuItem mnemonicParsing="false" onAction="#w_szczegoly" text="Szczegóły..." />
                                  </items>
                               </ContextMenu>
                            </contextMenu>
@@ -109,23 +107,45 @@
                   </AnchorPane>
               </content>
             </Tab>
+            <Tab text="Twoje wizyty domowe">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="wizyty_domowe" layoutX="250.0" layoutY="101.0" prefHeight="601.6" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <columns>
+                              <TableColumn fx:id="wd_id" prefWidth="44.000001549720764" text="ID" />
+                              <TableColumn fx:id="wd_pesel" prefWidth="244.0" text="Pacjent" />
+                              <TableColumn fx:id="wd_typ_wizyty" prefWidth="156.0" text="Typ wizyty" />
+                              <TableColumn fx:id="wd_data" minWidth="0.0" prefWidth="209.0" text="Data" />
+                              <TableColumn fx:id="wd_opis" minWidth="0.0" prefWidth="83.0" text="Opis" />
+                           </columns>
+                           <contextMenu>
+                              <ContextMenu fx:id="c_menu5" onShown="#test">
+                                 <items>
+                                  
+                                 </items>
+                              </ContextMenu>
+                           </contextMenu>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
             <Tab text="Skierowania">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <TableView fx:id="skierowania" prefHeight="601.6" prefWidth="900.0">
                            <columns>
-                              <TableColumn fx:id="s_id" prefWidth="44.000001549720764" text="Id" />
-                              <TableColumn fx:id="s_pesel" prefWidth="152.0000228881836" text="Pesel" />
-                              <TableColumn fx:id="s_id_p" prefWidth="120.79998779296875" text="Id lekarza" />
-                              <TableColumn fx:id="s_data" minWidth="0.0" prefWidth="279.2000427246094" text="Data" />
-                              <TableColumn fx:id="s_opis" minWidth="0.0" prefWidth="300.800048828125" text="Opis" />
-                              <TableColumn fx:id="w_id11" prefWidth="120.79998779296875" text="Id lekarza" />
+                              <TableColumn fx:id="s_id" prefWidth="44.000001549720764" text="ID" />
+                              <TableColumn fx:id="s_pesel" prefWidth="218.0" text="Pacjent" />
+                              <TableColumn fx:id="s_data" minWidth="0.0" prefWidth="178.0" text="Data" />
+                              <TableColumn fx:id="s_cel" prefWidth="197.0" text="Cel" />
+                              <TableColumn fx:id="s_opis" minWidth="0.0" prefWidth="261.0" text="Opis" />
                            </columns>
                            <contextMenu>
                               <ContextMenu fx:id="c_menu2" onShown="#test">
                                  <items>
-                                    <MenuItem mnemonicParsing="false" onAction="#s_szczegoly" text="Szczegóły..." />
                                  </items>
                               </ContextMenu>
                            </contextMenu>
@@ -140,17 +160,14 @@
                      <children>
                         <TableView fx:id="recepty" prefHeight="601.6" prefWidth="900.0">
                            <columns>
-                              <TableColumn fx:id="r_id" prefWidth="44.000001549720764" text="Id" />
-                              <TableColumn fx:id="r_pesel" prefWidth="152.0000228881836" text="Pesel" />
-                              <TableColumn fx:id="r_id_p" prefWidth="120.79998779296875" text="Id lekarza" />
+                              <TableColumn fx:id="r_id" prefWidth="44.000001549720764" text="ID" />
+                              <TableColumn fx:id="r_pesel" prefWidth="152.0000228881836" text="Pacjent" />
                               <TableColumn fx:id="r_data" minWidth="0.0" prefWidth="279.2000427246094" text="Data" />
                               <TableColumn fx:id="r_opis" minWidth="0.0" prefWidth="300.800048828125" text="Opis" />
-                              <TableColumn fx:id="w_id12" prefWidth="120.79998779296875" text="Id lekarza" />
                            </columns>
                            <contextMenu>
                               <ContextMenu fx:id="c_menu3" onShown="#test">
                                  <items>
-                                    <MenuItem mnemonicParsing="false" onAction="#r_szczegoly" text="Szczegóły..." />
                                  </items>
                               </ContextMenu>
                            </contextMenu>
@@ -158,6 +175,21 @@
                      </children>
                   </AnchorPane>
               </content>
+            </Tab>
+            <Tab text="Cennik wizyt domowych">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="cennik" layoutX="250.0" layoutY="101.0" prefHeight="601.6" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <columns>
+                              <TableColumn fx:id="c_id" prefWidth="44.000001549720764" text="ID" />
+                              <TableColumn fx:id="c_cena" prefWidth="152.0000228881836" text="Cena" />
+                              <TableColumn fx:id="c_opis" prefWidth="120.79998779296875" text="Opis" />
+                           </columns>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+               </content>
             </Tab>
         </tabs>
       </TabPane>

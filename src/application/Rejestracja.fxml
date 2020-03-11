@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.RejestracjaController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.RejestracjaController">
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -30,9 +30,13 @@
                 </Menu>
                   <Menu mnemonicParsing="false" text="Nowy">
                      <items>
+                        <MenuItem mnemonicParsing="false" onAction="#c_dodaj" text="Wpis w cenniku" />
                         <MenuItem mnemonicParsing="false" onAction="#p_dodaj" text="Pacjent" />
                         <MenuItem mnemonicParsing="false" onAction="#w_dodaj" text="Wizyta" />
                         <MenuItem mnemonicParsing="false" onAction="#l_dodaj" text="Lekarz" />
+                        <MenuItem mnemonicParsing="false" onAction="#pi_dodaj" text="Pielęgniarka" />
+                        <MenuItem mnemonicParsing="false" onAction="#d_dodaj" text="Dyżur" />
+                        <MenuItem mnemonicParsing="false" onAction="#wd_dodaj" text="WIzyta domowa" />
                      </items>
                   </Menu>
                 <Menu mnemonicParsing="false" text="Pomoc">
@@ -67,18 +71,18 @@
                               <TableColumn fx:id="p_pesel" prefWidth="104.00000154972076" text="Pesel" />
                             <TableColumn fx:id="p_imie" prefWidth="87.20000457763672" text="Imię" />
                             <TableColumn fx:id="p_nazwisko" prefWidth="101.60000610351562" text="Nazwisko" />
-                              <TableColumn fx:id="p_wiek" prefWidth="52.800048828125" text="Wiek" />
+                            <TableColumn fx:id="p_wiek" prefWidth="52.800048828125" text="Wiek" />
                               <TableColumn fx:id="p_ulica" prefWidth="86.39996337890625" text="Ulica" />
                               <TableColumn fx:id="p_nr_d" prefWidth="111.20004272460938" text="Numer domu" />
                               <TableColumn fx:id="p_nr_m" prefWidth="143.20001220703125" text="Numer mieszkania" />
                               <TableColumn fx:id="p_miejscowosc" prefWidth="119.99993896484375" text="Miejscowość" />
+                              <TableColumn fx:id="p_kod_pocztowy" prefWidth="119.99993896484375" text="Kod pocztowy" />
                           </columns>
                            <contextMenu>
                               <ContextMenu fx:id="c_menu" onShown="#test">
                                 <items>
                                   <MenuItem mnemonicParsing="false" onAction="#p_edytuj" text="Edytuj..." />
                                     <MenuItem mnemonicParsing="false" onAction="#p_usun" text="Usuń" />
-                                    <MenuItem mnemonicParsing="false" onAction="#p_szczegoly" text="Szczegóły..." />
                                 </items>
                               </ContextMenu>
                            </contextMenu>
@@ -104,7 +108,6 @@
                                  <items>
                                     <MenuItem mnemonicParsing="false" onAction="#w_edytuj" text="Edytuj..." />
                                     <MenuItem mnemonicParsing="false" onAction="#w_usun" text="Usuń" />
-                                    <MenuItem mnemonicParsing="false" onAction="#w_szczegoly" text="Szczegóły..." />
                                  </items>
                               </ContextMenu>
                            </contextMenu>
@@ -113,22 +116,48 @@
                   </AnchorPane>
               </content>
             </Tab>
+            <Tab text="Wizyty domowe">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="wizyty_domowe" layoutX="250.0" layoutY="101.0" prefHeight="601.6" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <columns>
+                              <TableColumn fx:id="wd_id" prefWidth="44.000001549720764" text="Id" />
+                              <TableColumn fx:id="wd_pesel" prefWidth="152.0000228881836" text="Pesel" />
+                              <TableColumn fx:id="wd_id_p" prefWidth="162.0" text="Id lekarza" />
+                              <TableColumn fx:id="wd_typ_wizyty" prefWidth="136.0" text="Typ wizyty" />
+                              <TableColumn fx:id="wd_data" minWidth="0.0" prefWidth="103.0" text="Data" />
+                              <TableColumn fx:id="wd_opis" minWidth="0.0" prefWidth="300.0" text="Opis" />
+                           </columns>
+                           <contextMenu>
+                              <ContextMenu fx:id="c_menu5" onShown="#test">
+                                 <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#wd_edytuj" text="Edytuj..." />
+                                    <MenuItem mnemonicParsing="false" onAction="#wd_usun" text="Usuń" />
+                                 </items>
+                              </ContextMenu>
+                           </contextMenu>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
             <Tab text="Skierowania">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <TableView fx:id="skierowania" prefHeight="601.6" prefWidth="900.0">
                            <columns>
-                              <TableColumn fx:id="s_id" prefWidth="44.000001549720764" text="Id" />
-                              <TableColumn fx:id="s_pesel" prefWidth="152.0000228881836" text="Pesel" />
-                              <TableColumn fx:id="s_id_p" prefWidth="120.79998779296875" text="Id lekarza" />
-                              <TableColumn fx:id="s_data" minWidth="0.0" prefWidth="279.2000427246094" text="Data" />
-                              <TableColumn fx:id="s_opis" minWidth="0.0" prefWidth="300.800048828125" text="Opis" />
+                              <TableColumn fx:id="s_id" prefWidth="28.0" text="ID" />
+                              <TableColumn fx:id="s_pesel" prefWidth="170.0" text="Pesel pacjenta" />
+                              <TableColumn fx:id="s_id_p" prefWidth="120.79998779296875" text="ID lekarza" />
+                              <TableColumn fx:id="s_data" minWidth="0.0" prefWidth="145.0" text="Data" />
+                              <TableColumn fx:id="s_cel" maxWidth="340.0" minWidth="0.0" prefWidth="190.0" text="Cel" />
+                              <TableColumn fx:id="s_opis" maxWidth="393.0" minWidth="0.0" prefWidth="245.0" text="Opis" />
                            </columns>
                            <contextMenu>
                               <ContextMenu fx:id="c_menu2" onShown="#test">
                                  <items>
-                                    <MenuItem mnemonicParsing="false" onAction="#s_szczegoly" text="Szczegóły..." />
                                  </items>
                               </ContextMenu>
                            </contextMenu>
@@ -152,7 +181,6 @@
                            <contextMenu>
                               <ContextMenu fx:id="c_menu3" onShown="#test">
                                  <items>
-                                    <MenuItem mnemonicParsing="false" onAction="#r_szczegoly" text="Szczegóły..." />
                                  </items>
                               </ContextMenu>
                            </contextMenu>
@@ -160,6 +188,33 @@
                      </children>
                   </AnchorPane>
               </content>
+            </Tab>
+            <Tab fx:id="tab_pielegniarki" text="Pielęgniarki">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="pielegniarki" layoutX="314.0" layoutY="136.0" prefHeight="601.6" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <columns>
+                              <TableColumn fx:id="pi_id" prefWidth="60.0" text="ID" />
+                              <TableColumn fx:id="pi_imie" prefWidth="189.0" text="Imię" />
+                              <TableColumn fx:id="pi_nazwisko" prefWidth="185.0" text="Nazwisko" />
+                              <TableColumn fx:id="pi_wiek" minWidth="3.20001220703125" prefWidth="54.0" text="Wiek" />
+                              <TableColumn fx:id="pi_telefon" prefWidth="220.0" text="Telefon" />
+                              <TableColumn fx:id="pi_czy_stazystka" prefWidth="179.0" text="Stażystka" />
+                           </columns>
+                           <contextMenu>
+                              <ContextMenu fx:id="c_menu6" onShown="#test">
+                                 <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#pi_edytuj" text="Edytuj..." />
+                                   <MenuItem mnemonicParsing="false" onAction="#pi_usun" text="Usuń" />
+                                   
+                                 </items>
+                              </ContextMenu>
+                           </contextMenu>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+               </content>
             </Tab>
             <Tab fx:id="tab_lekarze" text="Lekarze">
               <content>
@@ -181,7 +236,6 @@
                                  <items>
                                     <MenuItem mnemonicParsing="false" onAction="#l_edytuj" text="Edytuj..." />
                                     <MenuItem mnemonicParsing="false" onAction="#l_usun" text="Usuń" />
-                                    <MenuItem mnemonicParsing="false" onAction="#l_szczegoly" text="Szczegóły..." />
                                  </items>
                               </ContextMenu>
                            </contextMenu>
@@ -189,6 +243,55 @@
                      </children>
                   </AnchorPane>
               </content>
+            </Tab>
+            <Tab text="Cennik wizyt domowych">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="cennik" layoutX="250.0" layoutY="101.0" prefHeight="601.6" prefWidth="900.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <columns>
+                            <TableColumn fx:id="c_id" prefWidth="44.000001549720764" text="ID" />
+                            <TableColumn fx:id="c_cena" prefWidth="152.0000228881836" text="Cena" />
+                            <TableColumn fx:id="c_opis" prefWidth="120.79998779296875" text="Opis" />
+  
+                          </columns>
+                           <contextMenu>
+                              <ContextMenu fx:id="c_menu7" onShown="#test">
+                                 <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#c_edytuj" text="Edytuj..." />
+                                  <!--   <MenuItem mnemonicParsing="false" onAction="#c_usun" text="Usuń" />--> 
+                                 </items>
+                              </ContextMenu>
+                           </contextMenu>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+              </content>
+            </Tab>
+            <Tab text="Dyzury" fx:id="tab_dyzury">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="dyzury" prefHeight="300.8" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <columns>
+                              <TableColumn fx:id="d_id" prefWidth="57.0" text="ID" />
+                              <TableColumn fx:id="d_id_pracownika" prefWidth="191.0" text="ID pracownika" />
+                              <TableColumn fx:id="d_dzien_tygodnia" prefWidth="144.0" text="Dzień" />
+                              <TableColumn fx:id="d_godzina_rozpoczecia" prefWidth="234.0" text="Godzina rozpoczęcia" />
+                              <TableColumn fx:id="d_godzina_zakonczenia" prefWidth="273.0" text="Godzina zakończenia" />
+                           </columns>
+                           <contextMenu>
+                              <ContextMenu fx:id="c_menu8" onShown="#test">
+                                 <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#d_edytuj" text="Edytuj..." />
+                                    <MenuItem mnemonicParsing="false" onAction="#d_usun" text="Usuń" />
+                                 </items>
+                              </ContextMenu>
+                           </contextMenu>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+               </content>
             </Tab>
         </tabs>
       </TabPane>

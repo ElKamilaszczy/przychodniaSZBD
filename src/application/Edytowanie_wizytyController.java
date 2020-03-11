@@ -1,13 +1,18 @@
 package application;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.TimeZone;
 import java.util.function.UnaryOperator;
 
@@ -39,39 +44,49 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.converter.IntegerStringConverter;
 
 
 public class Edytowanie_wizytyController {
 	@FXML
-	private TextArea w_opis;
-	@FXML
 	private ComboBox w_lekarz, w_pacjent;
 	@FXML
 	private DatePicker w_data;
 	@FXML
+	private TextField w_opis;
+	@FXML
 	public Button p_ok, p_anuluj;
 	@FXML
-	private Spinner w_godzina, w_minuta;
+	private VBox TimeSpinnerGodzinaRozp;
+	private TimeSpinner w_godzina_rozp;
 	private Centrala C;
-	private ObservableList<Lekarz> lekarz = FXCollections.observableArrayList(C.getInstance().getLekarze());
-	private ObservableList<Pacjent> pacjent = FXCollections.observableArrayList(C.getInstance().getPacjenci());
+	private int index, id_wizyty;
+	private ObservableList<Pacjent> pacjent;
+	private ObservableList<PracownicyInformacje> lekarz;
 	private ObservableList<Wizyta> wizyta;
-	private int index;
 	//Nale¿y j¹ wykonaæ, by nadaæ jakby eventy na poszczególne pola (wykonuje siê dla wszystkich FXML), jest to taka inicjalizacyjna
-	//Inicjalizuje ona w³asciwoœci dla FXMLi	
+	//Inicjalizuje ona w³asciwoœci dla FXMLi
+
+	
 	public void initialize() throws NumberFormatException
 	{
+		//Ustawienie Spinnera Godzina Rozpoczecia//
+		w_godzina_rozp = new TimeSpinner();
+
 		
-		for(Pacjent P: pacjent)
-		{
-			w_pacjent.getItems().addAll(P.getPesel() + " : " +P.getImie() + " " +P.getNazwisko());
-		}
-		for(Lekarz L: lekarz)
-		{
-			w_lekarz.getItems().addAll(L.getId() + " : " +L.getImie() + " " +L.getNazwisko());
-		}		
+		w_godzina_rozp.setMinWidth(Region.USE_PREF_SIZE);
+		TimeSpinnerGodzinaRozp.getChildren().add(w_godzina_rozp);
+		//TimeSpinner.setVgrow(w_godzina, Priority.ALWAYS);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
+        w_godzina_rozp.valueProperty().addListener((obs, oldTime, newTime) -> 
+            System.out.println(formatter.format(newTime)));
+
+		
+	
 		
 	}
 	public void zamknijOkno(ActionEvent event)
@@ -84,50 +99,62 @@ public class Edytowanie_wizytyController {
 
 		if(p_ok != null)
 		{	
+			boolean czyPustyLekarz = w_lekarz.getSelectionModel().isEmpty();
+			boolean czyPustaGodzina = w_godzina_rozp.getValue() == null;
 			boolean czyPustyPacjent = w_pacjent.getSelectionModel().isEmpty();
-			boolean czyPustyLekarz =w_lekarz.getSelectionModel().isEmpty();
+			boolean czyPustyOpis = w_opis.getText().isEmpty();
 			boolean czyPustaData = w_data.getValue() == null;
-			boolean czyOpisPusty = w_opis.getText().isEmpty();
-			if(czyPustyLekarz || czyPustaData || czyPustyPacjent || czyOpisPusty)
+			if(czyPustyLekarz || czyPustyPacjent || czyPustaGodzina || czyPustyOpis || czyPustaData)
 				{
 					errorWindow();
 					return;
 				}
-				//Ogarniêcie peselku
-				String peselek = w_pacjent.getSelectionModel().getSelectedItem().toString();
-				String peselek1[] = peselek.split(" ", 2);
-				//Ogarniêcie id lekarza
-				String id = w_lekarz.getSelectionModel().getSelectedItem().toString();
-				String id1[] = id.split(" ", 2);
-				SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-				Date Data = null;
-				try {
-					String dateczka = w_data.getValue().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-					String godzina;
-					if (((Integer) w_godzina.getValue()) < 10)
-					{
-						godzina = "0";
-						godzina += Integer.toString(((Integer) w_godzina.getValue()));
-					}
-					else
-					{
-						godzina = Integer.toString(((Integer) w_godzina.getValue()));
-					}
-					String minutka = Integer.toString(((Integer) w_minuta.getValue()));
-					Data = formatter.parse(dateczka+ " " + godzina +":"+  minutka);
-					Wizyta w = new Wizyta(Integer.parseInt(id1[0]), peselek1[0], w_opis.getText(),
-							dateczka+ " " + godzina +":"+  minutka);
-					C.getInstance().removeWizyta(index);
-					C.getInstance().addWizyta(w);
-					wizyta.set(index, w);
-					informationWindow();
-					
-				} catch (ParseException e) {
-					System.out.println("niet");
-					return;
+			String id = w_lekarz.getSelectionModel().getSelectedItem().toString();
+			String id1[] = id.split(" ", 2);
+			PracownicyInformacje pracownik = null;
+			Iterator it1 = lekarz.iterator();
+			while(it1.hasNext())
+			{
+				PracownicyInformacje d = (PracownicyInformacje) it1.next();
+				if(d.getId() == Integer.parseInt(id1[0]))
+				{
+					pracownik = d;
+					break;
 				}
+			}
+			Pacjent pacjencik = null;
+			String pesel = w_pacjent.getSelectionModel().getSelectedItem().toString();
+			String pesel1[] = pesel.split(" ", 2);
+			Iterator it2 = pacjent.iterator();
+			while(it2.hasNext())
+			{
+				Pacjent d = (Pacjent) it2.next();
+				if(d.getPesel().equals(pesel1[0]))
+				{
+					pacjencik = d;
+					break;
+				}
+			}
+			///////////////Sprawdzenie daty/////////////
+			java.sql.Date data = java.sql.Date.valueOf(w_data.getValue());
+			if (w_data.getValue().isBefore(LocalDate.now()))
+			{
+				dataError();
+				return;
+			}
+			String w_godzina_rozp_string = w_godzina_rozp.getValue().toString();
+			//////////////////Czemu .format nie dziala?????///////////////
+			final Timestamp timestamp_godz_rozp =
+				    Timestamp.valueOf(
+				        new SimpleDateFormat("yyyy-MM-dd ")
+				        .format(data) // get the current date as String
+				        .concat(w_godzina_rozp_string)        // and append the time
+				    );
+			System.out.println(timestamp_godz_rozp);
 
-			
+			wizyta.set(index, C.getInstance().updateWizyta(id_wizyty, pracownik, pacjencik, timestamp_godz_rozp, w_opis.getText()));	
+			informationWindow();
+				
 		}
 
 			
@@ -150,44 +177,55 @@ public class Edytowanie_wizytyController {
 
 		alert.showAndWait();
 	}
+	public void dataError()
+	{
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("B³¹d");
+		alert.setHeaderText(null);
+		alert.setContentText("Niepoprawna data i godzina.");
+
+		alert.showAndWait();
+	}
 	//Implementacja metody potrzebnej w tym kontrolerze na dodanie Pacjenta do listy.
 
-	public void setItems(ObservableList<Wizyta> observableList) {
+	public void setItems(ObservableList<Wizyta> lista_wizyt_domowych) {
 		// TODO Auto-generated method stub
-		this.wizyta = observableList;
+		this.wizyta = lista_wizyt_domowych;
 	}
-	public void setIndex(int i) {
+	public void setLekarze(ObservableList<PracownicyInformacje> items) {
 		// TODO Auto-generated method stub
+		this.lekarz = items;
+		Iterator it = lekarz.iterator();
+		while(it.hasNext())
+		{
+			PracownicyInformacje p = (PracownicyInformacje) it.next();
+			w_lekarz.getItems().addAll(p.getId() + " : " +p.getImie() + " " +p.getNazwisko());
+		}
+	}
+	public void setPacjenci(ObservableList<Pacjent> lista_pacjentow) {
+		// TODO Auto-generated method stub
+		this.pacjent = lista_pacjentow;
+		Iterator it = pacjent.iterator();
+		while(it.hasNext())
+		{
+			Pacjent p = (Pacjent) it.next();
+			w_pacjent.getItems().addAll(p.getPesel() + " : " +p.getImie() + " " +p.getNazwisko());
+		}
+	}
+
+	public void setIndex(int id, int i) {
+		// TODO Auto-generated method stub
+		this.id_wizyty = id;
 		this.index = i;
 	}
-	public void getItems(Wizyta selectedItem) {
-		// TODO Auto-generated method stub
-		for (Lekarz L: C.getInstance().getLekarze())
-		{
-			if(L.getId() == selectedItem.getId_lekarza())
-			w_lekarz.setValue((Integer.toString(selectedItem.getId_lekarza()) + " : "+L.getImie()+" "+L.getNazwisko()));
-		}
-		for (Pacjent L: C.getInstance().getPacjenci())
-		{
-
-			if(L.getPesel().equals(selectedItem.getPesel_pacjenta()))
-			w_pacjent.setValue((selectedItem.getPesel_pacjenta() + " : "+L.getImie()+" "+L.getNazwisko()));
-		}
-		Date date = null;
-		w_opis.setText(selectedItem.getOpis());
-		String dataa = selectedItem.getData().toString();
-		String dataaa[] = dataa.split(" ",6);
-		String godzina_minuta = dataaa[3];
-		String godzinka_minutka[] = godzina_minuta.split(":", 3);
-		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-		try {
-			date = formatter.parse(selectedItem.getData().toString());
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		w_data.setPromptText(dataaa[2]+" "+ dataaa[0]+" " + dataaa[1]+ " "+ dataaa[5]);
-
+	public void setWybrany(Wizyta w) {
+		w_lekarz.setValue(w.getLekarz().getId_lekarza() + " : " +w.getLekarz().getPracownicy_informacje().getImie() + " " +
+				w.getLekarz().getPracownicy_informacje().getNazwisko());
+		w_pacjent.setValue(w.getPesel_pacjenta().getPesel() + " : "+w.getPesel_pacjenta().getImie() + " " +
+				w.getPesel_pacjenta().getNazwisko());
+		w_opis.setText(w.getOpis());
+		LocalDate localDate = LocalDate.parse( new SimpleDateFormat("yyyy-MM-dd").format(w.getData()));
+		w_data.setValue(localDate);
+		
 	}
 }
-

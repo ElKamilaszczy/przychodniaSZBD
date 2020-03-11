@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="489.0" prefWidth="432.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Edytowanie_pacjentaController">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="571.0" prefWidth="432.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Edytowanie_pacjentaController">
    <children>
       <HBox layoutY="40.0" prefHeight="37.0" prefWidth="432.0">
          <children>
@@ -159,11 +159,29 @@
             </VBox>
          </children>
       </HBox>
-      <AnchorPane layoutY="443.0" prefHeight="46.0" prefWidth="432.0" style="-fx-background-color: white;">
+      <HBox layoutY="436.0" prefHeight="37.0" prefWidth="432.0">
+         <children>
+            <VBox alignment="CENTER" prefHeight="110.0" prefWidth="219.0">
+               <children>
+                  <Label alignment="CENTER" prefHeight="79.0" prefWidth="176.0" text="Kod pocztowy">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+            <VBox prefHeight="105.0" prefWidth="181.0">
+               <children>
+                  <TextField fx:id="p_kod_pocztowy" alignment="CENTER" prefHeight="37.0" prefWidth="159.0" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+      <AnchorPane layoutY="507.0" prefHeight="50.0" prefWidth="432.0" style="-fx-background-color: white;">
          <children>
             <HBox prefHeight="37.0" prefWidth="432.0">
                <children>
-                  <VBox alignment="CENTER" prefHeight="36.0" prefWidth="216.0">
+                  <VBox alignment="CENTER" prefHeight="36.0" prefWidth="216.0" style="-fx-background-color: white;">
                      <children>
                         <Button fx:id="p_anuluj" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#zamknijOkno" prefHeight="25.0" prefWidth="80.0" text="Anuluj" />
                      </children>

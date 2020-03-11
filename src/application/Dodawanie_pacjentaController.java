@@ -1,6 +1,7 @@
 package application;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.function.UnaryOperator;
 
 import javax.imageio.spi.RegisterableService;
@@ -32,8 +33,7 @@ import javafx.util.converter.IntegerStringConverter;
 
 public class Dodawanie_pacjentaController {
 	@FXML
-	private TextField p_pesel, p_imie, p_nazwisko, p_wiek, p_numer_domu, p_numer_mieszkania,p_ulica,
-	p_miejscowosc;
+	private TextField p_pesel, p_imie, p_nazwisko, p_wiek, p_numer_domu, p_numer_mieszkania,p_ulica, p_kod_pocztowy, p_miejscowosc;
 	@FXML
 	public Button p_ok, p_anuluj;
 	//Stworzenie instancji na pacjenta stworzonego w tym kontrolerze
@@ -115,7 +115,6 @@ public class Dodawanie_pacjentaController {
 		    }
 		});
 		//Brak walidacji dla miejscowoœci (za du¿o k³opotów zwi¹zanych z kilku wyrazów, itp). W imionach rzadziej takie coœ.
-		
 	}
 	public void zamknijOkno(ActionEvent event)
 	{
@@ -132,34 +131,31 @@ public class Dodawanie_pacjentaController {
 				|| p_ulica.getText().isEmpty() || p_miejscowosc.getText().isEmpty())
 				{
 					errorWindow();
+					return;
 				}
-			Pacjent p = new Pacjent(null, null, null, 0, null, 0, 0, null);
-			for (Pacjent P : C.getInstance().getPacjenci()) {
-					if(p_pesel.getText().equals(P.getPesel()))
-					{
-						peselError();
-						return;
-				
-					}
-			}
-	
-				p.setPesel(p_pesel.getText());
-				p.setImie(p_imie.getText());
-				p.setNazwisko(p_nazwisko.getText());
-				p.setWiek(Integer.parseInt(p_wiek.getText()));
-				p.setUlica(p_ulica.getText());
-				p.setNr_domu(Integer.parseInt(p_numer_domu.getText()));
-				p.setNr_mieszkania(Integer.parseInt(p_numer_mieszkania.getText()));
-				p.setMiejscowosc(p_miejscowosc.getText());
-				Centrala.getInstance().addPacjent(p);
 
-				//Dodanie pacjenta//
-				pacjent.add(p);
-				informationWindow();
-				
+			String regex = "^[0-9]{2}-[0-9]{3}$";
+			System.out.println(p_kod_pocztowy.getText().matches(regex));
+			if (!p_kod_pocztowy.getText().matches(regex) || p_kod_pocztowy.getText().length() > 6)
+			{
+				kodPocztowyError();
+				return;
 			}
-
-			
+			Iterator it = pacjent.iterator();
+			while(it.hasNext())
+			{
+				Pacjent p = (Pacjent) it.next();
+				if(p_pesel.getText().equals(p.getPesel()))
+				{
+					peselError();
+					return;
+				}
+			}
+			pacjent.add(C.getInstance().addPacjent(p_pesel.getText(), p_imie.getText(), p_nazwisko.getText(), Integer.parseInt(p_wiek.getText())
+					, p_ulica.getText(), Integer.parseInt(p_numer_domu.getText()), Integer.parseInt(p_numer_mieszkania.getText())
+					, p_miejscowosc.getText(), p_kod_pocztowy.getText()));
+			informationWindow();
+		}
 	}
 
 			
@@ -187,6 +183,15 @@ public class Dodawanie_pacjentaController {
 		alert.setTitle("B³¹d");
 		alert.setHeaderText(null);
 		alert.setContentText("Pesel ju¿ istnieje.");
+
+		alert.showAndWait();
+	}
+	public void kodPocztowyError()
+	{
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("B³¹d");
+		alert.setHeaderText(null);
+		alert.setContentText("Z³y kod pocztowy.\nPrawid³owy to __-___.");
 
 		alert.showAndWait();
 	}

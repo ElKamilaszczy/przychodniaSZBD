@@ -1,85 +1,65 @@
 package application;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Lekarz {
-	private static int total_id = 0;
-	private int id;
-	private String login;
-	private String haslo;
-	private String imie;
-	private String nazwisko;
-	private int wiek;
+	private int id_lekarza;
 	private int sala;
-	private String telefon;
-	private Centrala C;
+	private PracownicyInformacje pracownicy_informacje;
+	//Lekarz posiada wiele wypisanych recept
+	private Set<Recepta> recepty = 
+			new HashSet<Recepta>(0);
+	private Set<Skierowanie> skierowania = 
+			new HashSet<Skierowanie>(0);
+	private Set<Wizyta> wizyty = 
+			new HashSet<Wizyta>(0);
 	
-	public Lekarz(String login, String haslo, String imie, String nazwisko, int wiek, int sala, String telefon)
+	public Lekarz()
 	{
-		this.id = total_id++;
-		this.login = login;
-		this.haslo = haslo;
-		this.imie = imie;
-		this.nazwisko = nazwisko;
-		this.wiek = wiek;
+		
+	}
+	
+	public Set<Skierowanie> getSkierowania() {
+		return skierowania;
+	}
+
+	public void setSkierowania(Set<Skierowanie> skierowania) {
+		this.skierowania = skierowania;
+	}
+
+	public Set<Wizyta> getWizyty() {
+		return wizyty;
+	}
+
+	public void setWizyty(Set<Wizyta> wizyty) {
+		this.wizyty = wizyty;
+	}
+
+	public Set<Recepta> getRecepty() {
+		return recepty;
+	}
+
+	public void setRecepty(Set<Recepta> recepty) {
+		this.recepty = recepty;
+	}
+	
+	public PracownicyInformacje getPracownicy_informacje(){
+		return pracownicy_informacje;
+	}
+	public void setPracownicy_informacje(PracownicyInformacje pi){
+		this.pracownicy_informacje = pi;
+	}
+	public Lekarz(int sala)
+	{
 		this.sala = sala;
-		this.telefon = telefon;
+	}
+	public int getId_lekarza() {
+		return id_lekarza;
 	}
 
-	public static int getTotal_id() {
-		return total_id;
-	}
-
-	public static void setTotal_id(int total_id) {
-		Lekarz.total_id = total_id;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getLogin() {
-		return login;
-	}
-
-	public boolean setLogin(String login) {
-
-		this.login = login;
-		return true;
-	}
-
-	public String getHaslo() {
-		return haslo;
-	}
-
-	public void setHaslo(String haslo) {
-		this.haslo = haslo;
-	}
-
-	public String getImie() {
-		return imie;
-	}
-
-	public void setImie(String imie) {
-		this.imie = imie;
-	}
-
-	public String getNazwisko() {
-		return nazwisko;
-	}
-
-	public void setNazwisko(String nazwisko) {
-		this.nazwisko = nazwisko;
-	}
-
-	public int getWiek() {
-		return wiek;
-	}
-
-	public void setWiek(int wiek) {
-		this.wiek = wiek;
+	public void setId_lekarza(int id) {
+		this.id_lekarza = id;
 	}
 
 	public int getSala() {
@@ -89,19 +69,6 @@ public class Lekarz {
 	public boolean setSala(int sala) {
 		
 		this.sala = sala;
-		return true;
-	}
-
-	public String getTelefon() {
-		return telefon;
-	}
-
-	public boolean setTelefon(String telefon) {
-		if (telefon.length() < 9)
-		{
-			return false;
-		}
-		this.telefon = telefon;
 		return true;
 	}
 }

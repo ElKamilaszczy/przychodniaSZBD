@@ -8,6 +8,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -28,6 +33,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -40,13 +46,18 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
+//import javafx.util.Callback;
 
 
 public class RejestracjaController {
 	
 	static public boolean deci = true;
 	public TextField pesel_filtr;
+	@FXML
 	public Tab tab_lekarze;
+	@FXML
+	public Tab tab_pielegniarki, tab_dyzury;
 	public Label etykieta_filtr;
 	public MenuBar bar;
 	
@@ -55,38 +66,101 @@ public class RejestracjaController {
 	public ContextMenu c_menu2;
 	public ContextMenu c_menu3;
 	public ContextMenu c_menu4;
+	public ContextMenu c_menu5;
+	public ContextMenu c_menu6;
+	public ContextMenu c_menu7;
+	public ContextMenu c_menu8;
 	@FXML
-	public TableView<Lekarz> lekarze;
+	public TableView<PracownicyInformacje> lekarze;
+	@FXML
+	public TableView<PracownicyInformacje> pielegniarki;
 	@FXML
 	public TableView<Pacjent> pacjenci;
 	@FXML
 	public TableView<Wizyta> wizyty;
 	@FXML
+	public TableView<Wizyta> wizyty_domowe;
+	@FXML
 	public TableView<Skierowanie> skierowania;
 	@FXML
 	public TableView<Recepta> recepty;
-
-	public TableColumn<Pacjent,String> p_pesel, p_imie, p_nazwisko, p_ulica, p_miejscowosc;
+	@FXML
+	public TableView<CennikWizytDomowych> cennik;
+	@FXML
+	public TableView<Dyzury> dyzury;
+	//public TableView<PracownicyInformacje> pracownicy_lekarze;
+	//public TableView<PracownicyInformacje> pracownicy_pielegniarki;
+	
+	@FXML
+	public TableColumn<Dyzury, Integer> d_id;
+	@FXML
+	public TableColumn<Dyzury, String> d_id_pracownika, d_dzien_tygodnia, d_godzina_rozpoczecia, d_godzina_zakonczenia;
+	@FXML
+	public TableColumn<Pacjent,String> p_pesel, p_imie, p_nazwisko, p_ulica, p_miejscowosc, p_kod_pocztowy;
+	@FXML
 	public TableColumn<Pacjent,Integer> p_wiek, p_nr_d, p_nr_m;
-	public TableColumn<Wizyta,String> w_pesel, w_opis;
-	public TableColumn<Wizyta,Integer> w_id_p,w_id;
+	@FXML
+	public TableColumn<Wizyta,String> w_id_p, w_pesel, w_opis;
+	@FXML
+	public TableColumn<Wizyta,Integer> w_id;
+	@FXML
 	public TableColumn<Wizyta,Date> w_data;
-	public TableColumn<Lekarz,String> l_login, l_haslo, l_imie, l_nazwisko, l_telefon;
-	public TableColumn<Lekarz,Integer> l_id, l_wiek, l_nr_sali;
-	public TableColumn<Skierowanie,String> s_pesel, s_opis;
-	public TableColumn<Skierowanie,Integer> s_id_p,s_id;
+	//wizyty domowe kolumny
+	@FXML
+	public TableColumn<Wizyta,String> wd_id_p, wd_pesel, wd_opis, wd_typ_wizyty;
+	@FXML
+	public TableColumn<Wizyta,Integer> wd_id;
+	@FXML
+	public TableColumn<Wizyta,Date> wd_data;
+	@FXML
+	//lekarze
+	public TableColumn<PracownicyInformacje,String> l_login, l_haslo, l_imie, l_nazwisko, l_telefon, l_nr_sali;
+	@FXML
+	public TableColumn<PracownicyInformacje,Integer> l_id, l_wiek;
+	
+	//pielegniarki
+	@FXML
+	public TableColumn<PracownicyInformacje,String> pi_imie, pi_nazwisko, pi_czy_stazystka, pi_telefon;
+	@FXML
+	public TableColumn<PracownicyInformacje,Integer> pi_wiek, pi_id;
+	@FXML
+	public TableColumn<Skierowanie,String>  s_id_p, s_pesel, s_opis, s_cel;
+	@FXML
+	public TableColumn<Skierowanie,Integer>s_id;
+	@FXML
 	public TableColumn<Skierowanie,Date> s_data;
-	public TableColumn<Recepta,String> r_pesel, r_opis;
-	public TableColumn<Recepta,Integer> r_id_p,r_id;
+	@FXML
+	public TableColumn<Recepta,String> r_id_p, r_pesel, r_opis;
+	@FXML
+	public TableColumn<Recepta,Integer> r_id;
+	@FXML
 	public TableColumn<Recepta,Date> r_data;
-	public ObservableList<Pacjent> lista;
-	public ObservableList<Wizyta> lista1;
-	public ObservableList<Skierowanie> lista2;
-	public ObservableList<Recepta> lista3;
+	@FXML
+	public TableColumn<CennikWizytDomowych, Integer> c_id, c_cena;
+	@FXML
+	public TableColumn<CennikWizytDomowych, String> c_opis;
+	
+	private Centrala C;
+	public ObservableList<Pacjent> lista_pacjentow;
+	public ObservableList<Wizyta> lista_wizyt;
+	public ObservableList<Skierowanie> lista_skierowan;
+	public ObservableList<Recepta> lista_recept;
+	//public ObservableList<Lekarz> lista4;
+	public ObservableList<CennikWizytDomowych> lista_cennik;
+	public ObservableList<Wizyta> lista_wizyt_domowych;
+	public ObservableList<PracownicyInformacje> lista_pielegniarek;
+	public ObservableList<PracownicyInformacje> lista_lekarzy;
+	public ObservableList<Dyzury> lista_dyzurow;
 	
 	public void change() {
 		if(tab_lekarze.isSelected())
 			etykieta_filtr.setText("Nazwisko lekarza: ");
+		else if(tab_pielegniarki.isSelected())
+			etykieta_filtr.setText("Nazwisko pielêgniarki: ");
+		else if(tab_dyzury.isSelected())
+		{
+			etykieta_filtr.setText("Nazwisko pracownika: ");
+		}
 		else
 			etykieta_filtr.setText("Pesel pacjenta: ");
 
@@ -99,52 +173,77 @@ public class RejestracjaController {
 		List<Wizyta> tmp2 = new ArrayList<>();
 		List<Skierowanie> tmp3 = new ArrayList<>();
 		List<Recepta> tmp4 = new ArrayList<>();
-		List<Lekarz> tmp5 = new ArrayList<>();
+		List<Wizyta> tmp5 = new ArrayList<>();
+		List<PracownicyInformacje> tmp6 = new ArrayList<>();
+		List<PracownicyInformacje> tmp7 = new ArrayList<>();
+		List<Dyzury> tmp8 = new ArrayList<>();
+		
+		if(!tab_lekarze.isSelected() && !tab_pielegniarki.isSelected() && !tab_dyzury.isSelected()) {
 
-		if(!tab_lekarze.isSelected()) {
-
-			for(Pacjent a:Centrala.getInstance().getPacjenci()) {
+			for(Pacjent a: lista_pacjentow) {
 				if(a.getPesel().startsWith(pesel_filtr.getText()))
 					tmp1.add(a);
 			
 			}
-			for(Wizyta a:Centrala.getInstance().getWizyty()) {
-				if(a.getPesel_pacjenta().startsWith(pesel_filtr.getText()))
+			for(Wizyta a: lista_wizyt) {
+				if(a.getPesel_pacjenta().getPesel().startsWith(pesel_filtr.getText()))
 					tmp2.add(a);
 			
 			}
-			for(Skierowanie a:Centrala.getInstance().getSkierowania()) {
-				if(a.getPesel_pacjenta().startsWith(pesel_filtr.getText()))
+			for(Skierowanie a: lista_skierowan ) {
+				if(a.getPesel_pacjenta().getPesel().startsWith(pesel_filtr.getText()))
 					tmp3.add(a);
 			
 			}
-			for(Recepta a:Centrala.getInstance().getRecepty()) {
-				if(a.getPesel_pacjenta().startsWith(pesel_filtr.getText()))
+			for(Recepta a: lista_recept) {
+				if(a.getPesel_pacjenta().getPesel().startsWith(pesel_filtr.getText()))
 					tmp4.add(a);
 			
 			}
-			lista = FXCollections.observableArrayList(tmp1);
-			lista1 = FXCollections.observableArrayList(tmp2);
-			lista2 = FXCollections.observableArrayList(tmp3);
-			lista3 = FXCollections.observableArrayList(tmp4);
+			for(Wizyta a: lista_wizyt_domowych) {
+				if(a.getPesel_pacjenta().getPesel().startsWith(pesel_filtr.getText()))
+					tmp5.add(a);
+			
+			}
 
+			ObservableList<Pacjent> lista = FXCollections.observableArrayList(tmp1);
+			ObservableList<Wizyta> lista1 = FXCollections.observableArrayList(tmp2);
+			ObservableList<Skierowanie> lista2 = FXCollections.observableArrayList(tmp3);
+			ObservableList<Recepta> lista3 = FXCollections.observableArrayList(tmp4);
+			ObservableList<Wizyta> lista4 = FXCollections.observableArrayList(tmp5);
 			pacjenci.setItems(lista);
 			wizyty.setItems(lista1);
 			skierowania.setItems(lista2);
 			recepty.setItems(lista3);
+			wizyty_domowe.setItems(lista4);
+			
+			
 		}
 		
 		else {
 			
-			for(Lekarz a:Centrala.getInstance().getLekarze()) {
+			for(PracownicyInformacje a: lista_lekarzy) {
 				if(a.getNazwisko().startsWith(pesel_filtr.getText()))
-					tmp5.add(a);
+					tmp6.add(a);
 				
 			}
+			for(PracownicyInformacje a: lista_pielegniarek) {
+				if(a.getNazwisko().startsWith(pesel_filtr.getText()))
+					tmp7.add(a);
+				
+			}
+			for(Dyzury a: lista_dyzurow) {
+				if(a.getId_pracownika().getNazwisko().startsWith(pesel_filtr.getText()))
+					tmp8.add(a);
 			
-			ObservableList<Lekarz> lista = FXCollections.observableArrayList(tmp5);
+			}
+			
+			ObservableList<PracownicyInformacje> lista = FXCollections.observableArrayList(tmp6);
+			ObservableList<PracownicyInformacje> lista1 = FXCollections.observableArrayList(tmp7);
+			ObservableList<Dyzury> lista2 = FXCollections.observableArrayList(tmp8);
 			lekarze.setItems(lista);
-
+			pielegniarki.setItems(lista1);
+			dyzury.setItems(lista2);
 			
 		}
 	}
@@ -152,6 +251,7 @@ public class RejestracjaController {
 	public void initialize() {
 									////////////INICJALIZACJA KOLUMN///////////////
 
+		
 		p_pesel.setCellValueFactory(new PropertyValueFactory<>("pesel"));
 		p_imie.setCellValueFactory(new PropertyValueFactory<>("imie"));
 		p_nazwisko.setCellValueFactory(new PropertyValueFactory<>("nazwisko"));
@@ -160,25 +260,111 @@ public class RejestracjaController {
 		p_nr_d.setCellValueFactory(new PropertyValueFactory<>("nr_domu"));
 		p_nr_m.setCellValueFactory(new PropertyValueFactory<>("nr_mieszkania"));
 		p_miejscowosc.setCellValueFactory(new PropertyValueFactory<>("miejscowosc"));
-		
-		w_pesel.setCellValueFactory(new PropertyValueFactory<>("pesel_pacjenta"));
+		p_kod_pocztowy.setCellValueFactory(new PropertyValueFactory<>("kod_pocztowy"));
+		//Kolumny wizyty//
+		w_pesel.setCellValueFactory(new Callback<CellDataFeatures<Wizyta,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Wizyta, String> param) {
+				// TODO Auto-generated method stub
+				 return new SimpleStringProperty(param.getValue().getPesel_pacjenta().getPesel());
+			}
+        });
 		w_id.setCellValueFactory(new PropertyValueFactory<>("id"));
-		w_id_p.setCellValueFactory(new PropertyValueFactory<>("id_lekarza"));
+		w_id_p.setCellValueFactory(new Callback<CellDataFeatures<Wizyta,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Wizyta, String> param) {
+				// TODO Auto-generated method stub
+				 return new SimpleStringProperty(Integer.toString(param.getValue().getLekarz().getId_lekarza()));
+			}
+        });
 		w_opis.setCellValueFactory(new PropertyValueFactory<>("opis"));
 		w_data.setCellValueFactory(new PropertyValueFactory<>("data"));
 		
-		s_pesel.setCellValueFactory(new PropertyValueFactory<>("pesel_pacjenta"));
-		s_id.setCellValueFactory(new PropertyValueFactory<>("id"));
-		s_id_p.setCellValueFactory(new PropertyValueFactory<>("id_lekarza"));
-		s_opis.setCellValueFactory(new PropertyValueFactory<>("opis"));
-		s_data.setCellValueFactory(new PropertyValueFactory<>("data"));
+		//Kolumny wizyt domowych
+		wd_pesel.setCellValueFactory(new Callback<CellDataFeatures<Wizyta,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Wizyta, String> param) {
+				// TODO Auto-generated method stub
+				 return new SimpleStringProperty(param.getValue().getPesel_pacjenta().getPesel());
+			}
+        });
+		wd_id.setCellValueFactory(new PropertyValueFactory<>("id"));
+		wd_id_p.setCellValueFactory(new Callback<CellDataFeatures<Wizyta,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Wizyta, String> param) {
+				// TODO Auto-generated method stub
+				 return new SimpleStringProperty(Integer.toString(param.getValue().getLekarz().getId_lekarza()));
+			}
+        });
+		wd_typ_wizyty.setCellValueFactory(new Callback<CellDataFeatures<Wizyta,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Wizyta, String> param) {
+				// TODO Auto-generated method stub
+				 return new SimpleStringProperty(Integer.toString(param.getValue().getWizyty_domowe().getTyp_wizyty().getTyp_wizyty()));
+			}
+        });
+		wd_opis.setCellValueFactory(new PropertyValueFactory<>("opis"));
+		wd_data.setCellValueFactory(new PropertyValueFactory<>("data"));
+
 		
-		r_pesel.setCellValueFactory(new PropertyValueFactory<>("pesel_pacjenta"));
-		r_id.setCellValueFactory(new PropertyValueFactory<>("id"));
-		r_id_p.setCellValueFactory(new PropertyValueFactory<>("id_lekarza"));
+		
+		s_id.setCellValueFactory(new PropertyValueFactory<>("nr_skierowania"));
+		s_pesel.setCellValueFactory(new Callback<CellDataFeatures<Skierowanie,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Skierowanie, String> param) {
+				// TODO Auto-generated method stub
+				if (param.toString().isEmpty())
+				{
+					return new SimpleStringProperty("Usuniety");
+				}
+				 return new SimpleStringProperty(param.getValue().getPesel_pacjenta().getPesel());
+			}
+        });
+
+		s_id_p.setCellValueFactory(new Callback<CellDataFeatures<Skierowanie,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Skierowanie, String> param) {
+				// TODO Auto-generated method stub
+				 return new SimpleStringProperty(Integer.toString(param.getValue().getLekarz().getId_lekarza()));
+			}
+        });
+		s_data.setCellValueFactory(new PropertyValueFactory<>("data"));
+		s_opis.setCellValueFactory(new PropertyValueFactory<>("opis_skierowania"));
+		s_cel.setCellValueFactory(new PropertyValueFactory<>("cel_skierowania"));
+
+		
+		//Koluimny tabeli Recepta
+		r_pesel.setCellValueFactory(new Callback<CellDataFeatures<Recepta,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Recepta, String> param) {
+				// TODO Auto-generated method stub
+				 return new SimpleStringProperty(param.getValue().getPesel_pacjenta().getPesel());
+			}
+        });
+		r_id.setCellValueFactory(new PropertyValueFactory<>("nr_recepty"));
+		r_id_p.setCellValueFactory(new Callback<CellDataFeatures<Recepta,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Recepta, String> param) {
+				// TODO Auto-generated method stub
+				if (param.toString().isEmpty())
+				{
+					return new SimpleStringProperty("Usuniety");
+				}
+				 return new SimpleStringProperty(Integer.toString(param.getValue().getLekarz().getId_lekarza()));
+			}
+        });
 		r_opis.setCellValueFactory(new PropertyValueFactory<>("opis"));
 		r_data.setCellValueFactory(new PropertyValueFactory<>("data"));
-	
+		///Lekarze kolumny
 		l_id.setCellValueFactory(new PropertyValueFactory<>("id"));
 		l_imie.setCellValueFactory(new PropertyValueFactory<>("imie"));
 		l_nazwisko.setCellValueFactory(new PropertyValueFactory<>("nazwisko"));
@@ -186,20 +372,109 @@ public class RejestracjaController {
 		l_login.setCellValueFactory(new PropertyValueFactory<>("login"));
 		l_haslo.setCellValueFactory(new PropertyValueFactory<>("haslo"));
 		l_telefon.setCellValueFactory(new PropertyValueFactory<>("telefon"));
-		l_nr_sali.setCellValueFactory(new PropertyValueFactory<>("sala"));
-											////////////UZUPELNIENIE TABELEK///////////////
+		
+		//Nale¿y przeprowadziæ modyfikacjê w celu uzupe³nienia zadanej kolumny wartoœciami odpowiadaj¹cymi wartoœciami dla danego lekarza//
+		l_nr_sali.setCellValueFactory(new Callback<CellDataFeatures<PracownicyInformacje,String>,ObservableValue<String>>(){
 
-		ObservableList<Pacjent> lista = FXCollections.observableArrayList(Centrala.getInstance().getPacjenci());
-		ObservableList<Wizyta> lista1 = FXCollections.observableArrayList(Centrala.getInstance().getWizyty());
-		ObservableList<Lekarz> lista2 = FXCollections.observableArrayList(Centrala.getInstance().getLekarze());
-		ObservableList<Skierowanie> lista3 = FXCollections.observableArrayList(Centrala.getInstance().getSkierowania());
-		ObservableList<Recepta> lista4 = FXCollections.observableArrayList(Centrala.getInstance().getRecepty());
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<PracownicyInformacje, String> param) {
+				// TODO Auto-generated method stub
+				 return new SimpleStringProperty(Integer.toString(param.getValue().getLekarz().getSala()));
+			}
+        });
+		//Pielegniarki kolumny//
+		pi_id.setCellValueFactory(new PropertyValueFactory<>("id"));
+		pi_imie.setCellValueFactory(new PropertyValueFactory<>("imie"));
+		pi_nazwisko.setCellValueFactory(new PropertyValueFactory<>("nazwisko"));
+		pi_wiek.setCellValueFactory(new PropertyValueFactory<>("wiek"));
 	
-		pacjenci.setItems(lista);
-		wizyty.setItems(lista1);
-		lekarze.setItems(lista2);
-		skierowania.setItems(lista3);
-		recepty.setItems(lista4);
+		pi_telefon.setCellValueFactory(new PropertyValueFactory<>("telefon"));
+		//Nale¿y przeprowadziæ modyfikacjê w celu uzupe³nienia zadanej kolumny wartoœciami odpowiadaj¹cymi wartoœciami dla danego lekarza//
+		pi_czy_stazystka.setCellValueFactory(new Callback<CellDataFeatures<PracownicyInformacje,String>,ObservableValue<String>>(){
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<PracownicyInformacje, String> param) {
+				// TODO Auto-generated method stub
+				if (param.getValue().getPielegniarka().isCzy_stazystka())
+				{
+					 return new SimpleStringProperty("Tak");
+				}
+				else
+					return new SimpleStringProperty("Nie");
+				
+			}
+        });
+		//Dyzury inicjalizacja kolumn
+		d_id.setCellValueFactory(new PropertyValueFactory<>("id_dyzuru"));
+		
+		d_id_pracownika.setCellValueFactory(new Callback<CellDataFeatures<Dyzury,String>, ObservableValue<String>>() {
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Dyzury, String> param) {
+				// TODO Auto-generated method stub
+				return new SimpleStringProperty(param.getValue().getId_pracownika().getId() + " : "
+						+ param.getValue().getId_pracownika().getImie() + " " + 
+						param.getValue().getId_pracownika().getNazwisko());
+			}
+		});
+		
+		d_dzien_tygodnia.setCellValueFactory(new PropertyValueFactory<>("dzien_tygodnia"));
+		d_godzina_rozpoczecia.setCellValueFactory(new Callback<CellDataFeatures<Dyzury,String>, ObservableValue<String>>() {
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Dyzury, String> param) {
+				// TODO Auto-generated method stub
+				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+				String godzina = sdf.format(param.getValue().getGodzina_rozpoczecia());
+				return new SimpleStringProperty(godzina);
+			}
+		});
+		d_godzina_zakonczenia.setCellValueFactory(new Callback<CellDataFeatures<Dyzury,String>, ObservableValue<String>>() {
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Dyzury, String> param) {
+				// TODO Auto-generated method stub
+				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+				String godzina = sdf.format(param.getValue().getGodzina_zakonczenia());
+				return new SimpleStringProperty(godzina);
+			}
+		});
+		//Cennik kolumny
+		c_id.setCellValueFactory(new PropertyValueFactory<>("typ_wizyty"));
+		c_cena.setCellValueFactory(new PropertyValueFactory<>("cena"));
+		c_opis.setCellValueFactory(new PropertyValueFactory<>("opis"));
+											////////////UZUPELNIENIE TABELEK///////////////
+		lista_dyzurow =  FXCollections.observableArrayList(Centrala.getInstance().loadDyzury());
+		//ObservableList<Dyzury> lista8 = FXCollections.observableArrayList(Centrala.getInstance().loadDyzury());
+		lista_lekarzy = FXCollections.observableArrayList(Centrala.getInstance().loadLekarze());
+		lista_pielegniarek = FXCollections.observableArrayList(Centrala.getInstance().loadPielegniarki());
+		//ObservableList<PracownicyInformacje> lista7 = FXCollections.observableArrayList(Centrala.getInstance().loadPielegniarki());
+		
+		//ObservableList<Skierowanie> lista3 = FXCollections.observableArrayList(Centrala.getInstance().loadSkierowania());
+		lista_skierowan =  FXCollections.observableArrayList(Centrala.getInstance().loadSkierowania());
+		lista_wizyt_domowych = FXCollections.observableArrayList(Centrala.getInstance().loadWizytyDomowe());
+		lista_wizyt = FXCollections.observableArrayList(Centrala.getInstance().loadWizyty());
+		//ObservableList<Wizyta> lista1 = FXCollections.observableArrayList(Centrala.getInstance().loadWizyty());
+		lista_cennik = FXCollections.observableArrayList(Centrala.getInstance().loadCennikWizytDomowych());
+		
+		lista_recept = FXCollections.observableArrayList(Centrala.getInstance().loadRecepty());
+		//ObservableList<Recepta> lista4 = FXCollections.observableArrayList(Centrala.getInstance().loadRecepty());
+		lista_pacjentow = FXCollections.observableArrayList(Centrala.getInstance().loadPacjenci());
+		
+		//lista_wizyt_domowych = FXCollections.observableArrayList(Centrala.getInstance().loadWizytyDomowe());
+		
+		
+		
+		pacjenci.setItems(lista_pacjentow);
+		lekarze.setItems(lista_lekarzy);
+		cennik.setItems(lista_cennik);
+		wizyty.setItems(lista_wizyt);
+		skierowania.setItems(lista_skierowan);
+		recepty.setItems(lista_recept);
+		wizyty_domowe.setItems(lista_wizyt_domowych);
+		pielegniarki.setItems(lista_pielegniarek);
+		dyzury.setItems(lista_dyzurow);
+		
 								////////////URUCHOMIENIE SZCZEGOL PO PODWOJNYM KLIKNIECIU MYSZY///////////////
 
 		pacjenci.setOnMouseClicked((MouseEvent event) -> {
@@ -253,10 +528,6 @@ public class RejestracjaController {
 				}
             }
         });
-    
-		
-	
-		
 	}
 	//////////////////////////////////////////////////////////////WYLOGOWANIE/////////////////////////////////////////////////////////////////////////////
 
@@ -274,12 +545,14 @@ public class RejestracjaController {
 		Optional<ButtonType> result = alert.showAndWait();
 		
 		if (result.get() == tak){
+
 			GridPane root = (GridPane)FXMLLoader.load(getClass().getResource("Logowanie.fxml"));
 			Scene scene = new Scene(root,400,220);
-			System.out.println("COstam");
 		    Stage stageTheEventSourceNodeBelongs = (Stage) ((Stage)bar.getScene().getWindow());
 		    stageTheEventSourceNodeBelongs.setScene(scene);
 		    stageTheEventSourceNodeBelongs.setTitle("Logowanie");
+			
+			
 		} 
 		else if (result.get() == nie);
 		
@@ -331,7 +604,7 @@ public class RejestracjaController {
 	}
 	
 	public void p_edytuj() {
-		System.out.println(pacjenci.getSelectionModel().getSelectedItem().getPesel());
+		//System.out.println(pacjenci.getSelectionModel().getSelectedItem().getPesel());
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Edytowanie_pacjenta.fxml"));
 			Pane root = (Pane)fxmlLoader.load();
@@ -339,12 +612,10 @@ public class RejestracjaController {
 			Stage stage = new Stage();
 			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
 			Edytowanie_pacjentaController controller = fxmlLoader.getController();
-			Edytowanie_pacjentaController controller2 = fxmlLoader.getController();
-			Edytowanie_pacjentaController controllerIndex = fxmlLoader.getController();
 			//Odbiór i przekazanie danych
-			controllerIndex.setIndex(pacjenci.getSelectionModel().selectedIndexProperty().get());
-			controller2.setItems(pacjenci.getItems());
-		    controller.getItems(pacjenci.getSelectionModel().getSelectedItem());
+			controller.setIndex(pacjenci.getSelectionModel().getSelectedItem().getPesel(), pacjenci.getSelectionModel().selectedIndexProperty().get());
+		    controller.setItems(pacjenci.getSelectionModel().getSelectedItem());
+		    controller.setPacjenci(lista_pacjentow);
 			stage.setScene(scene);
 		    stage.setTitle("Edytuj pacjenta");	
 		    stage.initModality(Modality.WINDOW_MODAL);
@@ -370,17 +641,48 @@ public class RejestracjaController {
 		Optional<ButtonType> result = alert.showAndWait();
 		
 		if (result.get() == tak){
-			Centrala.getInstance().removePacjent(pacjenci.getSelectionModel().getSelectedIndex());
+			//Centrala.getInstance().usunPacjenta(pacjenci.getSelectionModel().getSelectedItem().getPesel());
+			Centrala.getInstance().usunPacjenta(pacjenci.getSelectionModel().getSelectedItem());
+			//Centrala.getInstance().removePacjent(pacjenci.getSelectionModel().getSelectedIndex());
 			
-			for(Iterator<Wizyta> iter = wizyty.getItems().iterator(); iter.hasNext();) {
-				Wizyta a = iter.next();
-				if(a.getPesel_pacjenta().equals(pacjenci.getSelectionModel().getSelectedItem().getPesel())) 
+			for(Iterator<Recepta> iter = lista_recept.iterator(); iter.hasNext();) {
+				Recepta a = iter.next();
+				//System.out.println("a.getPesel_pacjenta().getPesel(): "+a.getPesel_pacjenta().getPesel());
+				//System.out.println("pacjenci.getSelectionModel().getSelectedItem().getPesel(): "+pacjenci.getSelectionModel().getSelectedItem().getPesel());
+				if(a.getPesel_pacjenta().getPesel().equals(pacjenci.getSelectionModel().getSelectedItem().getPesel())) 
+				{
 					iter.remove();
+				}
 				
-			}
+				}
+			for(Iterator<Skierowanie> iter = lista_skierowan.iterator(); iter.hasNext();) {
+				Skierowanie a = iter.next();
+				if(a.getPesel_pacjenta().getPesel().equals(pacjenci.getSelectionModel().getSelectedItem().getPesel())) 
+				{
+					iter.remove();
+				}
+				
+				}
+			for(Iterator<Wizyta> iter = lista_wizyt.iterator(); iter.hasNext();) {
+				Wizyta a = iter.next();
+				if(a.getPesel_pacjenta().getPesel().equals(pacjenci.getSelectionModel().getSelectedItem().getPesel())) 
+				{
+					iter.remove();
+				}
+				
+				}
+			for(Iterator<Wizyta> iter = lista_wizyt_domowych.iterator(); iter.hasNext();) {
+				Wizyta a = iter.next();
+				if(a.getPesel_pacjenta().getPesel().equals(pacjenci.getSelectionModel().getSelectedItem().getPesel())) 
+				{
+					iter.remove();
+				}
+				
+				}
 			pacjenci.getItems().remove(pacjenci.getSelectionModel().getSelectedIndex());
-		   
+			//pielegniarki.getItems().remove(lekarze.getSelectionModel().getSelectedIndex());
 		} 
+		
 		else if (result.get() == nie);
 		
 	}
@@ -400,6 +702,166 @@ public class RejestracjaController {
 	    stage.show();
 	    
 	}
+	////////////////////////////////////////////////////////////DLA PIELEGNIARKI/////////////////////////////////////////////////////////
+	public void pi_dodaj() {
+		System.out.println("bbbbb");
+		//System.out.println(pielegniarki.getItems());
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Dodawanie_pielegniarki.fxml"));
+			Pane root = (Pane)fxmlLoader.load();
+			Scene scene = new Scene(root);
+			Stage stage = new Stage();
+
+			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
+			Dodawanie_pielegniarkiController controller = fxmlLoader.getController();
+		    controller.setItems(pielegniarki.getItems());
+			stage.setScene(scene);
+		    stage.setTitle("Dodaj pielêgniarkê");	
+		    stage.initModality(Modality.WINDOW_MODAL);
+		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
+		    
+		    stage.show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	public void pi_edytuj() {
+		//pielegniarki.refresh();
+		System.out.println("XDDDDD sdsd");
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Edytowanie_pielegniarki.fxml"));
+			Pane root = (Pane)fxmlLoader.load();
+			Scene scene = new Scene(root);
+			Stage stage = new Stage();
+			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
+			Edytowanie_pielegniarkiController controller = fxmlLoader.getController();
+
+			//Odbiór i przekazanie danych
+			//controller.setTabelka(pielegniarki);
+			controller.setIndex(pielegniarki.getSelectionModel().getSelectedItem().getId(), pielegniarki.getSelectionModel().selectedIndexProperty().get());
+		    controller.setItems(pielegniarki.getSelectionModel().getSelectedItem());
+		    controller.setPielegniarki(lista_pielegniarek);
+			stage.setScene(scene);
+		    stage.setTitle("Edytuj pielêgniarkê");	
+		    stage.initModality(Modality.WINDOW_MODAL);
+		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
+		    
+		    stage.show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public void pi_usun() {
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle("Potwierdzenie usuniêcia pielêgniarki");
+		alert.setHeaderText(null);
+		alert.setContentText("Czy usun¹æ pielêgniarkê?");
+
+		ButtonType tak = new ButtonType("Tak");
+		ButtonType nie = new ButtonType("Nie");
+		alert.getButtonTypes().setAll(tak, nie);
+
+		Optional<ButtonType> result = alert.showAndWait();
+		
+		if (result.get() == tak){
+			Centrala.getInstance().usunPielegniarke(pielegniarki.getSelectionModel().getSelectedItem());
+			//Centrala.getInstance().removePacjent(pacjenci.getSelectionModel().getSelectedIndex());
+
+			
+			//lista_recept = FXCollections.observableArrayList(Centrala.getInstance().loadRecepty());
+			for(Iterator<Dyzury> iter = lista_dyzurow.iterator(); iter.hasNext();) {
+				Dyzury a = iter.next();
+				if(a.getId_pracownika().getId() == pielegniarki.getSelectionModel().getSelectedItem().getId()) 
+				{
+					iter.remove();
+				}
+				
+				}
+			pielegniarki.getItems().remove(pielegniarki.getSelectionModel().getSelectedIndex());
+			//System.out.println("Po usuwaniu l_usuun");
+
+		} 
+		else if (result.get() == nie);
+		
+	}
+	/////////////////////////////////////////DYZURY//////////////////////////////
+	public void d_dodaj() {
+		System.out.println("bbbbb");
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Dodawanie_dyzuru.fxml"));
+			Pane root = (Pane)fxmlLoader.load();
+			Scene scene = new Scene(root);
+			Stage stage = new Stage();
+			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
+			Dodawanie_dyzuruController controller = fxmlLoader.getController();
+		    controller.setItems(dyzury.getItems());
+		    controller.setLekarze(lista_lekarzy);
+		    controller.setPielegniarki(lista_pielegniarek);
+			stage.setScene(scene);
+		    stage.setTitle("Dodaj dy¿ur");	
+		    stage.initModality(Modality.WINDOW_MODAL);
+		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
+		    
+		    stage.show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	//edycja dyzurow
+	public void d_edytuj() {
+		//System.out.println(wizyty.getSelectionModel().getSelectedItem().getPesel_pacjenta());
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Edytowanie_dyzuru.fxml"));
+			Pane root = (Pane)fxmlLoader.load();
+			Scene scene = new Scene(root);
+			Stage stage = new Stage();
+			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
+			Edytowanie_dyzuruController controller = fxmlLoader.getController();
+			//Odbiór i przekazanie danych
+			controller.setIndex(dyzury.getSelectionModel().getSelectedItem().getId_dyzuru(), dyzury.getSelectionModel().selectedIndexProperty().get());
+		    controller.setItems(dyzury.getSelectionModel().getSelectedItem());
+		    controller.setItems(lista_dyzurow);
+			controller.setPielegniarki(lista_pielegniarek);
+		    controller.setLekarze(lista_lekarzy);
+			stage.setScene(scene);
+		    stage.setTitle("Edytuj wizytê");	
+		    stage.initModality(Modality.WINDOW_MODAL);
+		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
+		    
+		    stage.show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void d_usun() {
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle("Potwierdzenie usuniêcia dyzuru");
+		alert.setHeaderText(null);
+		alert.setContentText("Czy usun¹æ dy¿ur?");
+
+		ButtonType tak = new ButtonType("Tak");
+		ButtonType nie = new ButtonType("Nie");
+		alert.getButtonTypes().setAll(tak, nie);
+
+		Optional<ButtonType> result = alert.showAndWait();
+		
+		if (result.get() == tak){
+			Centrala.getInstance().usunDyzur(dyzury.getSelectionModel().getSelectedItem());
+			//Centrala.getInstance().removePacjent(pacjenci.getSelectionModel().getSelectedIndex());
+
+			dyzury.getItems().remove(dyzury.getSelectionModel().getSelectedIndex());
+
+		} 
+		else if (result.get() == nie);
+		
+	}
 	//////////////////////////////////////////////////////////////DLA WIZYT/////////////////////////////////////////////////////////////////////////////
 
 	public void w_dodaj() {
@@ -411,7 +873,9 @@ public class RejestracjaController {
 			Stage stage = new Stage();
 			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
 			Dodawanie_wizytyController controller = fxmlLoader.getController();
-		    controller.setItems(wizyty.getItems());
+		    controller.setItems(lista_wizyt);
+		    controller.setLekarze(lista_lekarzy);
+		    controller.setPacjenci(lista_pacjentow);
 			stage.setScene(scene);
 		    stage.setTitle("Dodaj wizytê");	
 		    stage.initModality(Modality.WINDOW_MODAL);
@@ -425,7 +889,7 @@ public class RejestracjaController {
 		
 	}
 	public void w_edytuj() {
-		System.out.println(wizyty.getSelectionModel().getSelectedItem().getPesel_pacjenta());
+		//System.out.println(wizyty.getSelectionModel().getSelectedItem().getPesel_pacjenta());
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Edytowanie_wizyty.fxml"));
 			Pane root = (Pane)fxmlLoader.load();
@@ -433,14 +897,15 @@ public class RejestracjaController {
 			Stage stage = new Stage();
 			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
 			Edytowanie_wizytyController controller = fxmlLoader.getController();
-			Edytowanie_wizytyController controller2 = fxmlLoader.getController();
-			Edytowanie_wizytyController controllerIndex = fxmlLoader.getController();
-			//Odbiór i przekazanie danych
-			controllerIndex.setIndex(wizyty.getSelectionModel().selectedIndexProperty().get());
-			controller2.setItems(wizyty.getItems());
-		    controller.getItems(wizyty.getSelectionModel().getSelectedItem());
+		    controller.setWybrany(wizyty.getSelectionModel().getSelectedItem());
+		    controller.setItems(lista_wizyt);
+		    controller.setLekarze(lista_lekarzy);
+		    controller.setPacjenci(lista_pacjentow);
+		    controller.setIndex(wizyty.getSelectionModel().getSelectedItem().getId(), wizyty.getSelectionModel().selectedIndexProperty().get());
+
+		   
 			stage.setScene(scene);
-		    stage.setTitle("Edytuj wizytê");	
+		    stage.setTitle("Dodaj wizytê");	
 		    stage.initModality(Modality.WINDOW_MODAL);
 		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
 		    
@@ -464,7 +929,7 @@ public class RejestracjaController {
 		Optional<ButtonType> result = alert.showAndWait();
 		
 		if (result.get() == tak){
-			Centrala.getInstance().removeWizyta(wizyty.getSelectionModel().getSelectedIndex());
+			Centrala.getInstance().usunWizyte(wizyty.getSelectionModel().getSelectedItem());
 			wizyty.getItems().remove(wizyty.getSelectionModel().getSelectedIndex());
 		    
 		   
@@ -487,6 +952,86 @@ public class RejestracjaController {
 	    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
 	    
 	    stage.show();
+		
+	}
+	///////////////////////////////////////WIZYTY DOMOWE//////////////////////////////////
+	public void wd_dodaj() {
+		System.out.println("bbbbb");
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Dodawanie_WizytyDomowej.fxml"));
+			Pane root = (Pane)fxmlLoader.load();
+			Scene scene = new Scene(root);
+			Stage stage = new Stage();
+			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
+			Dodawanie_WizytyDomowejController controller = fxmlLoader.getController();
+		    controller.setItems(lista_wizyt_domowych);
+		    controller.setTyp(lista_cennik);
+		    controller.setLekarze(lista_lekarzy);
+		    controller.setPacjenci(lista_pacjentow);
+			stage.setScene(scene);
+		    stage.setTitle("Dodaj wizytê");	
+		    stage.initModality(Modality.WINDOW_MODAL);
+		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
+		    
+		    stage.show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	public void wd_edytuj() {
+		System.out.println("bbbbb");
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Edytowanie_WizytyDomowej.fxml"));
+			Pane root = (Pane)fxmlLoader.load();
+			Scene scene = new Scene(root);
+			Stage stage = new Stage();
+			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
+			Edytowanie_WizytyDomowejController controller = fxmlLoader.getController();
+
+		   
+		    controller.setTyp(lista_cennik);
+		   // controller.setWybrany(wizyty_domowe.getSelectionModel().getSelectedItem());
+		    controller.setItems(lista_wizyt_domowych);
+		    controller.setLekarze(lista_lekarzy);
+		    controller.setPacjenci(lista_pacjentow);
+		    controller.setIndex(wizyty_domowe.getSelectionModel().getSelectedItem().getId(),
+		    		wizyty_domowe.getSelectionModel().selectedIndexProperty().get(),
+		    		wizyty_domowe.getSelectionModel().getSelectedItem());
+
+		   
+			stage.setScene(scene);
+		    stage.setTitle("Dodaj wizytê");	
+		    stage.initModality(Modality.WINDOW_MODAL);
+		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
+		    
+		    stage.show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	public void wd_usun() {
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle("Potwierdzenie usuniêcia wizyty domowej");
+		alert.setHeaderText(null);
+		alert.setContentText("Czy usun¹æ wizytê?");
+
+		ButtonType tak = new ButtonType("Tak");
+		ButtonType nie = new ButtonType("Nie");
+		alert.getButtonTypes().setAll(tak, nie);
+
+		Optional<ButtonType> result = alert.showAndWait();
+		
+		if (result.get() == tak){
+			Centrala.getInstance().usunWizyteDomowa(wizyty_domowe.getSelectionModel().getSelectedItem());
+			wizyty_domowe.getItems().remove(wizyty_domowe.getSelectionModel().getSelectedIndex());
+		    
+		   
+		} 
+		else if (result.get() == nie);
 		
 	}
 	//////////////////////////////////////////////////////////////DLA SKIEROWAN/////////////////////////////////////////////////////////////////////////////
@@ -575,7 +1120,7 @@ public class RejestracjaController {
 	}
 	//////////////////////////////////////////////////////////////DLA LEKARZY/////////////////////////////////////////////////////////////////////////////
 	public void l_dodaj() {
-		System.out.println("bbbbb");
+		//System.out.println("bbbbb");
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Dodawanie_lekarza.fxml"));
 			Pane root = (Pane)fxmlLoader.load();
@@ -583,7 +1128,8 @@ public class RejestracjaController {
 			Stage stage = new Stage();
 			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
 			Dodawanie_lekarzaController controller = fxmlLoader.getController();
-		    controller.setItems(lekarze.getItems());
+			controller.setItemsPielegniarki(pielegniarki.getItems());
+		    controller.setItemsLekarze(lekarze.getItems());
 			stage.setScene(scene);
 		    stage.setTitle("Dodaj lekarza");	
 		    stage.initModality(Modality.WINDOW_MODAL);
@@ -598,7 +1144,7 @@ public class RejestracjaController {
 	}
 	
 	public void l_edytuj() {
-		System.out.println(lekarze.getSelectionModel().getSelectedItem().getNazwisko());
+		//System.out.println(lekarze.getSelectionModel().getSelectedItem().getNazwisko());
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Edytowanie_lekarza.fxml"));
 			Pane root = (Pane)fxmlLoader.load();
@@ -606,12 +1152,11 @@ public class RejestracjaController {
 			Stage stage = new Stage();
 			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
 			Edytowanie_lekarzaController controller = fxmlLoader.getController();
-			Edytowanie_lekarzaController controller2 = fxmlLoader.getController();
-			Edytowanie_lekarzaController controllerIndex = fxmlLoader.getController();
 			//Odbiór i przekazanie danych
-			controllerIndex.setIndex(lekarze.getSelectionModel().selectedIndexProperty().get());
-			controller2.setItems(lekarze.getItems());
-		    controller.getItems(lekarze.getSelectionModel().getSelectedItem());
+			controller.setIndex(lekarze.getSelectionModel().getSelectedItem().getId(), lekarze.getSelectionModel().selectedIndexProperty().get());
+			controller.setItemsLekarze(lekarze.getItems());
+			controller.setItemsPielegniarki(pielegniarki.getItems());
+		    controller.setItemsWybrany(lekarze.getSelectionModel().getSelectedItem());
 			stage.setScene(scene);
 		    stage.setTitle("Edytuj lekarza");	
 		    stage.initModality(Modality.WINDOW_MODAL);
@@ -637,32 +1182,46 @@ public class RejestracjaController {
 		Optional<ButtonType> result = alert.showAndWait();
 		
 		if (result.get() == tak){
-			Centrala.getInstance().removeLekarz(lekarze.getSelectionModel().getSelectedIndex());
-			for(Iterator<Wizyta> iter = wizyty.getItems().iterator(); iter.hasNext();) {
-				Wizyta a = iter.next();
-				if(a.getId_lekarza()==lekarze.getSelectionModel().getSelectedItem().getId()) 
-					iter.remove();
-				
-			}
-			for(Iterator<Skierowanie> iter = skierowania.getItems().iterator(); iter.hasNext();) {
-				Skierowanie a = iter.next();
-				if(a.getId_lekarza()==lekarze.getSelectionModel().getSelectedItem().getId()) 
-					iter.remove();
-					
-			}
-			for(Iterator<Recepta> iter = recepty.getItems().iterator(); iter.hasNext();) {
+			Centrala.getInstance().usunLekarza(lekarze.getSelectionModel().getSelectedItem());
+			//Centrala.getInstance().removePacjent(pacjenci.getSelectionModel().getSelectedIndex());
+
+			
+			//lista_recept = FXCollections.observableArrayList(Centrala.getInstance().loadRecepty());
+			for(Iterator<Recepta> iter = lista_recept.iterator(); iter.hasNext();) {
 				Recepta a = iter.next();
-				if(a.getId_lekarza()==lekarze.getSelectionModel().getSelectedItem().getId()) 
+				if(a.getLekarz().getId_lekarza() == lekarze.getSelectionModel().getSelectedItem().getId()) 
+				{
 					iter.remove();
-					
-				
-			}
-			
-			
-			lekarze.getItems().remove(lekarze.getSelectionModel().getSelectedIndex());
-		    
+				}
+			//recepty.getItems().remove(lekarze.getSelectionModel().getSelectedIndex());
 		   
-		} 
+				} 
+			for(Iterator<Skierowanie> iter = lista_skierowan.iterator(); iter.hasNext();) {
+				Skierowanie a = iter.next();
+				if(a.getLekarz().getId_lekarza() == lekarze.getSelectionModel().getSelectedItem().getId()) 
+					iter.remove();
+				}
+
+			for(Iterator<Wizyta> iter = lista_wizyt.iterator(); iter.hasNext();) {
+				Wizyta a = iter.next();
+				if(a.getLekarz().getId_lekarza() == lekarze.getSelectionModel().getSelectedItem().getId()) 
+					iter.remove();
+				}
+			for(Iterator<Wizyta> iter = lista_wizyt_domowych.iterator(); iter.hasNext();) {
+				Wizyta a = iter.next();
+				if(a.getLekarz().getId_lekarza() == lekarze.getSelectionModel().getSelectedItem().getId()) 
+					iter.remove();
+				}
+			for(Iterator<Dyzury> iter = lista_dyzurow.iterator(); iter.hasNext();) {
+				Dyzury a = iter.next();
+				//a.getId_pracownika().getId() == dyzury.getSelectionModel().getSelectedItem().getId_pracownika().getId()
+				if(a.getId_pracownika().getId() == lekarze.getSelectionModel().getSelectedItem().getId()) 
+					iter.remove();
+				}
+			lekarze.getItems().remove(lekarze.getSelectionModel().getSelectedIndex());
+			System.out.println("Po usuwaniu l_usuun");
+		
+				}
 		else if (result.get() == nie);
 		
 	}
@@ -683,6 +1242,57 @@ public class RejestracjaController {
 	    stage.show();
 		
 	}
+	////////////////////////////////////////////////////CENNIK//////////////////////////////////////////////
+	public void c_dodaj() {
+		System.out.println("bbbbb");
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Dodawanie_CennikWizytDomowych.fxml"));
+			Pane root = (Pane)fxmlLoader.load();
+			Scene scene = new Scene(root);
+			Stage stage = new Stage();
+			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
+			Dodawanie_CennikWizytDomowychController controller = fxmlLoader.getController();
+			controller.setItemsCennik(cennik.getItems());
+			stage.setScene(scene);
+		    stage.setTitle("Dodaj wpis w cenniku");	
+		    stage.initModality(Modality.WINDOW_MODAL);
+		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
+		    
+		    stage.show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public void c_edytuj() {
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Edytowanie_CennikWizytDomowych.fxml"));
+			Pane root = (Pane)fxmlLoader.load();
+			Scene scene = new Scene(root);
+			Stage stage = new Stage();
+			//Nalezy stworzyæ referencjê do drugiego kontrolera w celu przekazania istniejacej listy//
+			Edytowanie_CennikWizytDomowychController controller = fxmlLoader.getController();
+			//Odbiór i przekazanie danych
+			controller.setIndex(cennik.getSelectionModel().getSelectedItem().getTyp_wizyty(), cennik.getSelectionModel().selectedIndexProperty().get());
+			controller.setItemsCennik(cennik.getItems());
+		    controller.setItemsWybrany(cennik.getSelectionModel().getSelectedItem());
+			stage.setScene(scene);
+		    stage.setTitle("Edytuj lekarza");	
+		    stage.initModality(Modality.WINDOW_MODAL);
+		    stage.initOwner((Stage) ((Stage)bar.getScene().getWindow()));
+		    
+		    stage.show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
+	
 	//////////////////////////////////////////////////////////////BLOKADA CONTEXT MENU/////////////////////////////////////////////////////////////////////////////
 
 	public void test() {
@@ -697,6 +1307,14 @@ public class RejestracjaController {
 				c_menu3.hide();
 			if(lekarze.getSelectionModel().isEmpty())
 				c_menu4.hide();
+			if(wizyty_domowe.getSelectionModel().isEmpty())
+				c_menu5.hide();
+			if(pielegniarki.getSelectionModel().isEmpty())
+				c_menu6.hide();
+			if(cennik.getSelectionModel().isEmpty())
+				c_menu7.hide();
+			if(dyzury.getSelectionModel().isEmpty())
+				c_menu8.hide();
 		} catch (NullPointerException e) {
 			
 			System.out.println("");

@@ -1,6 +1,8 @@
-package application;
+	package application;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.UnaryOperator;
 
 import javax.imageio.spi.RegisterableService;
@@ -50,25 +52,15 @@ public class Dodawanie_skierowaniaController {
 	private Centrala C;
 	private Panel_lekarzaController p;
 	private int id;
-	private ObservableList<Lekarz> lekarz = FXCollections.observableArrayList(C.getInstance().getLekarze());
-	private ObservableList<Pacjent> pacjent = FXCollections.observableArrayList(C.getInstance().getPacjenci());
+	private PracownicyInformacje lekarz = C.getInstance().danyLekarz(id);
+	private ObservableList<Pacjent> pacjent;
 	private ObservableList<Skierowanie> skierowanie;
 	//Nale¿y j¹ wykonaæ, by nadaæ jakby eventy na poszczególne pola (wykonuje siê dla wszystkich FXML), jest to taka inicjalizacyjna
 	//Inicjalizuje ona w³asciwoœci dla FXMLi
 
-	
 	public void initialize() throws NumberFormatException
 	{
-		id = p.id;
-		for(Pacjent P: pacjent)
-		{
-			r_pacjent.getItems().addAll(P.getPesel() + " : " +P.getImie() + " " +P.getNazwisko());
-		}
-		for(Lekarz L : lekarz)
-		{	if(id == L.getId())
-			r_lekarz.setText(L.getId() + " : "+ L.getImie() + " " + L.getNazwisko());	
-		}
-		
+
 	}
 	public void zamknijOkno(ActionEvent event)
 	{
@@ -80,34 +72,29 @@ public class Dodawanie_skierowaniaController {
 
 		if(p_ok != null)
 		{	
-			boolean czyPustyPacjent = r_pacjent.getSelectionModel().isEmpty();
-			boolean czyOpisPusty = r_opis.getText().isEmpty();
-			boolean czyCelPusty = r_cel.getText().isEmpty();
-			if(czyPustyPacjent || czyOpisPusty || czyCelPusty)
+			if(r_opis.getText().isEmpty() || r_pacjent.getSelectionModel().isEmpty() || r_cel.getText().isEmpty())
+			{
+				errorWindow();
+				return;
+				
+			}
+			Iterator it = pacjent.iterator();
+			Pacjent pacjent_obslugiwany = null;
+			String peselek = r_pacjent.getSelectionModel().getSelectedItem().toString();
+			String peselek1[] = peselek.split(" ", 2);
+			while(it.hasNext())
+			{
+				Pacjent p = (Pacjent) it.next();
+				if(peselek1[0].equals(p.getPesel()))
 				{
-					errorWindow();
-					return;
+					pacjent_obslugiwany = p;
+					break;
 				}
-				Skierowanie r = new Skierowanie(0, null, null, null);
-				//Ogarniêcie peselku
-				String peselek = r_pacjent.getSelectionModel().getSelectedItem().toString();
-				String peselek1[] = peselek.split(" ", 2);
-				r.setPesel_pacjenta(peselek1[0]);
-				//Ogarniêcie id lekarza
-				String id = r_lekarz.getText();
-				String id1[] = id.split(" ", 2);
-				r.setId_lekarza(Integer.parseInt(id1[0]));
-
-				r.setOpis(r_opis.getText());
-				r.setCel(r_cel.getText());
-				Centrala.getInstance().addSkierowanie(r);
-
-				//Dodanie pacjenta//
-				skierowanie.add(r);
-				informationWindow();
-			
+			}
+			//PracownicyInformacje PI;
+			skierowanie.add(C.getInstance().addSkierowanie(lekarz, pacjent_obslugiwany, r_cel.getText(), r_opis.getText()));
+			informationWindow();
 		}
-
 			
 	}
 	public void informationWindow()
@@ -138,9 +125,25 @@ public class Dodawanie_skierowaniaController {
 		alert.showAndWait();
 	}
 	//Implementacja metody potrzebnej w tym kontrolerze na dodanie Pacjenta do listy.
-
-	public void setItems(ObservableList<Skierowanie> items) {
+	public void setItems(ObservableList<Skierowanie> skierowania) {
 		// TODO Auto-generated method stub
-		this.skierowanie = items;
+		this.skierowanie = skierowania;
+	}
+	public void setPacjenci(ObservableList<Pacjent> lista_pacjentow_na_wizyty) {
+		// TODO Auto-generated method stub
+		System.out.println("setPacjenci");
+		this.pacjent = lista_pacjentow_na_wizyty;
+		Iterator it = pacjent.iterator();
+		while(it.hasNext())
+		{
+			Pacjent p = (Pacjent) it.next();
+			r_pacjent.getItems().addAll(p.getPesel()+" : "+p.getImie()+ " "+p.getNazwisko());
+		}
+		
+	}
+	public void setLekarz(PracownicyInformacje obecny_lekarz) {
+		this.lekarz = obecny_lekarz;
+		r_lekarz.setText(lekarz.getLekarz().getId_lekarza()+ ": " +lekarz.getImie() + " "
+				+ lekarz.getNazwisko());
 	}
 }

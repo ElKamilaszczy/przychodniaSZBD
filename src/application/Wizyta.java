@@ -1,4 +1,5 @@
 package application;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -6,15 +7,21 @@ import java.util.TimeZone;
 
 public class Wizyta {
 	
-	private static int total_id = 0;
+	//private static int total_id = 0;
 	private int id;
-	private int id_lekarza;
-	private String pesel_pacjenta;
-	private Date data;
+	private Lekarz lekarz;
+	private Pacjent pesel_pacjenta;
+	private Timestamp data;
 	private String opis;
-	
+	private WizytyDomowe wizyty_domowe;
+
+	public Wizyta()
+	{
+		//this.data = new Timestamp(id);
+	}
+	/*
 		public Wizyta(int id_lekarza, String pesel_pacjenta, String opis, String data) {
-		this.id = total_id++;
+		//this.id = total_id++;
 		this.id_lekarza = id_lekarza;
 		this.pesel_pacjenta = pesel_pacjenta;
 		
@@ -28,33 +35,41 @@ public class Wizyta {
 		    
 		this.opis = opis;
 	}
-	
+	*/
 	public int getId() {
 		return id;
 	}
-	public int getId_lekarza() {
-		return id_lekarza;
+	public WizytyDomowe getWizyty_domowe() {
+		return wizyty_domowe;
 	}
-	public void setId_lekarza(int id_lekarza) {
-		this.id_lekarza = id_lekarza;
+	public void setWizyty_domowe(WizytyDomowe wd) {
+		this.wizyty_domowe = wd;
 	}
-	public String getPesel_pacjenta() {
+	public Lekarz getLekarz() {
+		return lekarz;
+	}
+	public void setLekarz(Lekarz id_lekarza) {
+		this.lekarz = id_lekarza;
+	}
+	public Pacjent getPesel_pacjenta() {
 		return pesel_pacjenta;
 	}
-	public void setPesel_pacjenta(String pesel_pacjenta) {
+	public void setPesel_pacjenta(Pacjent pesel_pacjenta) {
 		this.pesel_pacjenta = pesel_pacjenta;
 	}
 	public Date getData() {
 		return data;
 	}
-	public void setData(String data) {
-		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+	public void setData(Timestamp data) {
+		/*
+		SimpleDateFormat formatter = new SimpleDateFormat("YYYY-MM-DD HH24:MI");
 		try {
-		    this.data = formatter.parse(data);
+		    this.data = (Timestamp) formatter.parse(data);
 		    
 		} catch (ParseException e) {
 		}
-		
+		*/
+		this.data = data;
 	}
 	
 	public String getOpis() {

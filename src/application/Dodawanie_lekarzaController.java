@@ -1,9 +1,14 @@
 package application;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.UnaryOperator;
 
 import javax.imageio.spi.RegisterableService;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -37,7 +42,10 @@ public class Dodawanie_lekarzaController {
 	public Button p_ok, p_anuluj;
 	//Stworzenie instancji na pacjenta stworzonego w tym kontrolerze
 	@FXML
-	private ObservableList<Lekarz> lekarz;
+	private ObservableList<PracownicyInformacje> lekarz;
+	private ObservableList<PracownicyInformacje> pielegniarka;
+	private Centrala C;
+
 	//Nale¿y j¹ wykonaæ, by nadaæ jakby eventy na poszczególne pola (wykonuje siê dla wszystkich FXML), jest to taka inicjalizacyjna
 	//Inicjalizuje ona w³asciwoœci dla FXMLi
 	@FXML
@@ -55,21 +63,17 @@ public class Dodawanie_lekarzaController {
 		        }
 		    }
 		});
-		//Niepotrzebne na haslo
-		/*
 		l_haslo.textProperty().addListener(new ChangeListener<String>() {
 		    @Override
 		    public void changed(ObservableValue<? extends String> observable, String oldValue, 
 		        String newValue) {
-		        if (newValue.matches("[A-Z][a-z]*")) {
+		        if (newValue.matches("^[0-9A-Za-z\\s-]+$")) {
 		            int value = Integer.parseInt(newValue);
 		        } else {
-		            p_imie.setText("");
+		           l_login.setText(oldValue);
 		        }
 		    }
 		});
-		*/
-		
 		l_imie.textProperty().addListener(new ChangeListener<String>() {
 		    @Override
 		    public void changed(ObservableValue<? extends String> observable, String oldValue, 
@@ -142,33 +146,60 @@ public class Dodawanie_lekarzaController {
 				|| l_telefon.getText().isEmpty())
 				{
 					errorWindow();
+					return;
 				}
-			Lekarz l = new Lekarz(null, null, null, null, 0, 0, null);
-			if (l.setLogin(l_login.getText()) == true && l.setSala(Integer.parseInt(l_sala.getText()))==true
-					&& l.setTelefon(l_telefon.getText()) == true)
-			{	
-				l.setLogin(l_login.getText());
-				l.setHaslo(l_haslo.getText());
-				l.setImie(l_imie.getText());
-				l.setNazwisko(l_nazwisko.getText());
-				l.setSala(Integer.parseInt(l_sala.getText()));
-				l.setWiek(Integer.parseInt(l_wiek.getText()));
-				l.setTelefon(l_telefon.getText());
-				Centrala.getInstance().addLekarz(l);
-
-				//Dodanie lekarza
-				lekarz.add(l);
-				informationWindow();
-				
-			}
-			else
+			if(Integer.parseInt(l_wiek.getText()) < 18)
 			{
-				peselError();
+				wiekErrorWindow();
+				return;
 			}
+			Iterator it = lekarz.iterator();
+			Iterator it1 = pielegniarka.iterator();
+			while(it.hasNext())
+			{
+				 PracownicyInformacje lekarz1 = (PracownicyInformacje) it.next();
+				 if(l_login.getText().equals(lekarz1.getLogin()))
+				 {
+					 loginError();
+					 return;
+				 }
+
+				 if(Integer.parseInt(l_sala.getText()) == lekarz1.getLekarz().getSala())
+				 {
+					 salaError();
+					 return;
+				 }
+			}
+			while(it1.hasNext())
+			{
+				PracownicyInformacje lekarz1 = (PracownicyInformacje) it1.next();
+				 if(l_telefon.getText().equals(lekarz1.getTelefon()))
+				 {
+					 telefonError();
+					 return;
+				 }
+			}
+		     
+			//Dodanie do bazy + odœwie¿enie listy w tabeli
+			
+			 lekarz.add(C.getInstance().addLekarz(l_login.getText(), l_haslo.getText(), l_imie.getText(), l_nazwisko.getText(),
+					Integer.parseInt(l_wiek.getText()), l_telefon.getText(), Integer.parseInt(l_sala.getText())));
+
+			informationWindow();
+
 			
 		}
 
 			
+	}
+	public void wiekErrorWindow()
+	{
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("B³¹d");
+		alert.setHeaderText(null);
+		alert.setContentText("Wiek lekarza nie mo¿e byæ wiêkszy ni¿ 18.");
+
+		alert.showAndWait();
 	}
 	public void informationWindow()
 	{
@@ -188,18 +219,40 @@ public class Dodawanie_lekarzaController {
 
 		alert.showAndWait();
 	}
-	public void peselError()
+	public void loginError()
 	{
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle("B³¹d");
 		alert.setHeaderText(null);
-		alert.setContentText("Login, sala lub telefon s¹ zajête.");
+		alert.setContentText("Login jest zajêty.");
+
+		alert.showAndWait();
+	}
+	public void telefonError()
+	{
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("B³¹d");
+		alert.setHeaderText(null);
+		alert.setContentText("Telefon jest zajêty.");
+
+		alert.showAndWait();
+	}
+	public void salaError()
+	{
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("B³¹d");
+		alert.setHeaderText(null);
+		alert.setContentText("Sala jest ju¿ zajêta przez innego lekarza.");
 
 		alert.showAndWait();
 	}
 	//Implementacja metody potrzebnej w tym kontrolerze na dodanie Pacjenta do listy.
-	public void setItems(ObservableList<Lekarz> lekarz) {
-		this.lekarz = lekarz;
+	public void setItemsPielegniarki(ObservableList<PracownicyInformacje> pielegniarki) {
+		this.pielegniarka = pielegniarki;
 		
+	}
+	public void setItemsLekarze(ObservableList<PracownicyInformacje> lekarz) {
+		// TODO Auto-generated method stub
+		this.lekarz = lekarz;
 	}
 }

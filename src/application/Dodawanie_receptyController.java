@@ -1,9 +1,17 @@
 package application;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.function.UnaryOperator;
 
 import javax.imageio.spi.RegisterableService;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -11,7 +19,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -36,6 +44,7 @@ import javafx.stage.Stage;
 import javafx.util.converter.IntegerStringConverter;
 
 
+
 public class Dodawanie_receptyController {
 	@FXML
 	private TextArea r_opis;
@@ -47,26 +56,18 @@ public class Dodawanie_receptyController {
 	public Button p_ok, p_anuluj;
 	private Centrala C;
 	private Panel_lekarzaController p;
+	private RejestracjaController r;
 	private int id;
-	private ObservableList<Lekarz> lekarz = FXCollections.observableArrayList(C.getInstance().getLekarze());
-	private ObservableList<Pacjent> pacjent = FXCollections.observableArrayList(C.getInstance().getPacjenci());
+	private PracownicyInformacje lekarz;
+	@FXML
+	private ObservableList<Pacjent> pacjent;
 	private ObservableList<Recepta> recepta;
 	//Nale¿y j¹ wykonaæ, by nadaæ jakby eventy na poszczególne pola (wykonuje siê dla wszystkich FXML), jest to taka inicjalizacyjna
 	//Inicjalizuje ona w³asciwoœci dla FXMLi
 
-	
-	public void initialize() throws NumberFormatException
-	{
-		id = p.id;
-		for(Pacjent P: pacjent)
-		{
-			r_pacjent.getItems().addAll(P.getPesel() + " : " +P.getImie() + " " +P.getNazwisko());
-		}
-		for(Lekarz L : lekarz)
-		{	if(id == L.getId())
-			r_lekarz.setText(L.getId() + " : "+ L.getImie() + " " + L.getNazwisko());	
-		}
+	public void initialize() {
 		
+	
 	}
 	public void zamknijOkno(ActionEvent event)
 	{
@@ -78,30 +79,29 @@ public class Dodawanie_receptyController {
 
 		if(p_ok != null)
 		{	
-			boolean czyPustyPacjent = r_pacjent.getSelectionModel().isEmpty();
-			boolean czyOpisPusty = r_opis.getText().isEmpty();
-			if(czyPustyPacjent || czyOpisPusty)
+			if(r_opis.getText().isEmpty() || r_pacjent.getSelectionModel().isEmpty())
+			{
+				errorWindow();
+				return;
+				
+			}
+			Iterator it = pacjent.iterator();
+			Pacjent pacjent_obslugiwany = null;
+			String peselek = r_pacjent.getSelectionModel().getSelectedItem().toString();
+			String peselek1[] = peselek.split(" ", 2);
+			while(it.hasNext())
+			{
+				Pacjent p = (Pacjent) it.next();
+				if(peselek1[0].equals(p.getPesel()))
 				{
-					errorWindow();
-					return;
+					pacjent_obslugiwany = p;
+					break;
 				}
-				Recepta r = new Recepta(0, null, null);
-				//Ogarniêcie peselku
-				String peselek = r_pacjent.getSelectionModel().getSelectedItem().toString();
-				String peselek1[] = peselek.split(" ", 2);
-				r.setPesel_pacjenta(peselek1[0]);
-				//Ogarniêcie id lekarza
-				String id = r_lekarz.getText();
-				String id1[] = id.split(" ", 2);
-				r.setId_lekarza(Integer.parseInt(id1[0]));
-
-				r.setOpis(r_opis.getText());
-				Centrala.getInstance().addRecepta(r);
-
-				//Dodanie pacjenta//
-				recepta.add(r);
-				informationWindow();
-			
+				
+			}
+			//PracownicyInformacje PI = C.getInstance().danyLekarz(id);
+			recepta.add(C.getInstance().addRecepta(lekarz, pacjent_obslugiwany, r_opis.getText()));
+			informationWindow();
 		}
 
 			
@@ -129,4 +129,24 @@ public class Dodawanie_receptyController {
 		// TODO Auto-generated method stub
 		this.recepta = items;
 	}
+	
+	public void setPacjenci(ObservableList<Pacjent> lista_pacjentow_na_wizyty) {
+		// TODO Auto-generated method stub
+		System.out.println("setPacjenci");
+		this.pacjent = lista_pacjentow_na_wizyty;
+		Iterator it = pacjent.iterator();
+		while(it.hasNext())
+		{
+			Pacjent p = (Pacjent) it.next();
+			r_pacjent.getItems().addAll(p.getPesel()+" : "+p.getImie()+ " "+p.getNazwisko());
+		}
+		
+	}
+	public void setLekarz(PracownicyInformacje obecny_lekarz) {
+		this.lekarz = obecny_lekarz;
+		r_lekarz.setText(lekarz.getLekarz().getId_lekarza()+ ": " +lekarz.getImie() + " "
+				+ lekarz.getNazwisko());
+	}
+
+
 }
